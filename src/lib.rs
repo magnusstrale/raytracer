@@ -622,6 +622,14 @@ mod tests {
         let line = color_data.pop_front();
         assert_eq!(line, Some("153 255 204 153 255 204 153 255 204 153 255 204 153\n".to_string()));
     }
+    #[test]
+    fn ppm_file_terminated_with_newline() {
+        let c = Canvas::canvas(5, 3);
+        let mut ppm = c.canvas_to_ppm();
+
+        let last_line = ppm.pop_back();
+        assert_eq!(last_line.unwrap().chars().last(), Some('\n'));
+    }
 }
 
 
