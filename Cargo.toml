@@ -5,3 +5,4 @@ authors = ["Magnus Stråle <magnus.strale@factor10.com>"]
 edition = "2018"
 
 [dependencies]
+num = "^0.2.0"
