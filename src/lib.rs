@@ -215,10 +215,10 @@ impl Canvas {
         self.canvas[y * self.width + x] = c;
     }
 
-    fn ppm_header(&self, fileContent: &mut LinkedList<String>) {
-        fileContent.push_back("P3\n".to_string());
-        fileContent.push_back(format!("{} {}\n", self.width, self.height));
-        fileContent.push_back("255\n".to_string());
+    fn ppm_header(&self, file_content: &mut LinkedList<String>) {
+        file_content.push_back("P3\n".to_string());
+        file_content.push_back(format!("{} {}\n", self.width, self.height));
+        file_content.push_back("255\n".to_string());
 
     }
 
@@ -226,31 +226,43 @@ impl Canvas {
         format!("{}", num::clamp(color_value * 256.0, 0.0, 255.0) as u8)
     }
 
-    fn ppm_row(&self, fileContent: &mut LinkedList<String>, row: usize) {
+    fn ppm_add_string_to_row(row: &mut String, segment: String, file_content: &mut LinkedList<String>) {
+        let rowlength = row.len();
+        if rowlength + segment.len() >= 70 {
+            row.push_str("\n");
+            file_content.push_back(row.to_string());
+            row.clear();
+        }
+        else if rowlength > 0 {
+            row.push_str(" ");
+        }
+        row.push_str(&segment);
+    }
+
+    fn ppm_row(&self, file_content: &mut LinkedList<String>, row: usize) {
         let start_index = row * self.width;
         let mut row = String::with_capacity(80);
 
         for i in start_index..start_index + self.width {
-            if row.len() > 0 { row += " "; }
             let c = self.canvas[i];
-            row += &Canvas::ppm_color(c.r);
-            row += " ";
-            row += &Canvas::ppm_color(c.g);
-            row += " ";
-            row += &Canvas::ppm_color(c.b);
+            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.r), file_content);
+            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.g), file_content);
+            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.b), file_content);
         }
-        row += "\n";
-        fileContent.push_back(row);
+        if row.len() > 0 {
+            row += "\n";
+            file_content.push_back(row);
+        }
     }
 
     fn canvas_to_ppm(&self) -> LinkedList<String> {
 
-        let mut fileContent: LinkedList<String> = LinkedList::new();
-        self.ppm_header(&mut fileContent);
+        let mut file_content: LinkedList<String> = LinkedList::new();
+        self.ppm_header(&mut file_content);
         for row in 0..self.height {
-            self.ppm_row(&mut fileContent, row);
+            self.ppm_row(&mut file_content, row);
         }
-        fileContent
+        file_content
     }
 
 }
@@ -585,6 +597,30 @@ mod tests {
         assert_eq!(line5, Some("0 0 0 0 0 0 0 128 0 0 0 0 0 0 0\n".to_string()));
         let line6 = color_data.pop_front();
         assert_eq!(line6, Some("0 0 0 0 0 0 0 0 0 0 0 0 0 0 255\n".to_string()));
+    }
+
+    #[test]
+    fn split_long_lines_in_ppm_file()
+    {
+        let mut c = Canvas::canvas(10, 2);
+        let col = Color::color(1.0, 0.8, 0.6);
+        for x in 0..10 {
+            for y in 0..2 {
+                c.write_pixel(x, y, col);
+            }
+        }
+
+        let mut ppm = c.canvas_to_ppm();
+        let mut color_data = ppm.split_off(3);
+        
+        let line = color_data.pop_front();
+        assert_eq!(line, Some("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n".to_string()));
+        let line = color_data.pop_front();
+        assert_eq!(line, Some("153 255 204 153 255 204 153 255 204 153 255 204 153\n".to_string()));
+        let line = color_data.pop_front();
+        assert_eq!(line, Some("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n".to_string()));
+        let line = color_data.pop_front();
+        assert_eq!(line, Some("153 255 204 153 255 204 153 255 204 153 255 204 153\n".to_string()));
     }
 }
 
