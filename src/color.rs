@@ -70,7 +70,7 @@ impl Color {
 struct Canvas {
     pub width: usize,
     pub height: usize,
-    canvas: Vec<Color>
+    canvas: Vec<Vec<Color>>
 }
 
 const BLACK: Color = Color { r: 0.0, g: 0.0, b: 0.0 };
@@ -80,19 +80,20 @@ use num::clamp;
 
 impl Canvas {
     fn canvas(width: usize, height: usize) -> Canvas {
+        let black_row = vec![BLACK; width];
         Canvas { 
             width, 
             height,
-            canvas: vec![BLACK; width * height]
+            canvas: vec![black_row; height]
         }
     }
 
     fn pixel_at(&self, x: usize, y: usize) -> Color {
-        self.canvas[y * self.width + x]
+        self.canvas[y][x]
     }
 
     fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
-        self.canvas[y * self.width + x] = c;
+        self.canvas[y][x] = c;
     }
 
     fn ppm_header(&self, file_content: &mut LinkedList<String>) {
@@ -120,18 +121,17 @@ impl Canvas {
     }
 
     fn ppm_row(&self, file_content: &mut LinkedList<String>, row: usize) {
-        let start_index = row * self.width;
-        let mut row = String::with_capacity(80);
+        let mut file_row = String::with_capacity(80);
 
-        for i in start_index..start_index + self.width {
-            let c = self.canvas[i];
-            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.r), file_content);
-            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.g), file_content);
-            Canvas::ppm_add_string_to_row(&mut row, Canvas::ppm_color(c.b), file_content);
+        for column in 0..self.width {
+            let c = self.canvas[row][column];
+            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.r), file_content);
+            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.g), file_content);
+            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.b), file_content);
         }
-        if row.len() > 0 {
-            row += "\n";
-            file_content.push_back(row);
+        if file_row.len() > 0 {
+            file_row += "\n";
+            file_content.push_back(file_row);
         }
     }
 
@@ -215,8 +215,10 @@ mod tests {
         assert_eq!(c.width, 10);
         assert_eq!(c.height, 20);
 
-        for a in c.canvas {
-            assert_eq!(a, BLACK);
+        for row in c.canvas {
+            for color in row {
+                assert_eq!(color, BLACK);
+            }
         }
     }
 
