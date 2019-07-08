@@ -1,4 +1,8 @@
+use std::io::Result;
+//use png;
+use png::HasParameters;
 use core::ops;
+use std::fs::File;
 
 // Chapter 2
 #[derive(Debug, Copy, Clone)]
@@ -65,6 +69,18 @@ impl Color {
     fn color(r: f64, g: f64, b: f64) -> Color {
         Color {r, g, b}
     }
+
+    fn clamp(num: f64) -> f64 {
+        num::clamp(num * 256.0, 0.0, 255.0)
+    }
+
+    fn clamp_color(&self) -> Color {
+        Color { 
+            r: Color::clamp(self.r),
+            g: Color::clamp(self.g),
+            b: Color::clamp(self.b)
+        }
+    }
 }
 
 struct Canvas {
@@ -94,6 +110,21 @@ impl Canvas {
 
     fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
         self.canvas[y][x] = c;
+    }
+
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = vec![0u8; &self.width * &self.height * 3];
+        let mut index = 0;
+        for row in &self.canvas {
+            for color in row {
+                let clamped_color = color.clamp_color();
+                bytes[index] = clamped_color.r as u8;
+                bytes[index + 1] = clamped_color.g as u8;
+                bytes[index + 2] = clamped_color.b as u8;
+                index += 3;
+            }
+        }
+        bytes
     }
 
     fn ppm_header(&self, file_content: &mut LinkedList<String>) {
@@ -143,6 +174,17 @@ impl Canvas {
             self.ppm_row(&mut file_content, row);
         }
         file_content
+    }
+
+    fn save(&self, file_name: &str) {
+        let file = File::create(file_name).unwrap();
+        let ref mut w = std::io::BufWriter::new(file);
+
+        let mut encoder = png::Encoder::new(w, self.width as u32, self.height as u32);
+        encoder.set(png::ColorType::RGB).set(png::BitDepth::Eight);
+        let mut writer = encoder.write_header().unwrap();
+
+        writer.write_image_data(&self.to_bytes()).unwrap(); // Save
     }
 }
 
@@ -299,5 +341,14 @@ mod tests {
 
         let last_line = ppm.pop_back();
         assert_eq!(last_line.unwrap().chars().last(), Some('\n'));
+    }
+
+    #[test]
+    fn ppm_to_file()
+    {
+        let mut c = Canvas::canvas(100, 100);
+        c.write_pixel(1, 1, Color::color(1.0, 1.0, 1.0));
+        c.write_pixel(99, 0, Color::color(1.0, 0.5, 0.5));
+        c.save("black.png");
     }
 }
