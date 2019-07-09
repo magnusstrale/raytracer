@@ -79,11 +79,11 @@ impl ops::Div<f64> for Tuple {
 }
 
 impl Tuple {
-    fn point(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn point(x: f64, y: f64, z: f64) -> Tuple {
         Tuple {x, y, z, w: 1.0}
     }
 
-    fn vector(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
         Tuple {x, y, z, w: 0.0}
     }
 
