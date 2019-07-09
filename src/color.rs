@@ -1,5 +1,4 @@
 use std::io::Result;
-//use png;
 use png::HasParameters;
 use core::ops;
 use std::fs::File;
@@ -90,6 +89,10 @@ struct Canvas {
 }
 
 const BLACK: Color = Color { r: 0.0, g: 0.0, b: 0.0 };
+const WHITE: Color = Color { r: 1.0, g: 1.0, b: 1.0 };
+const RED: Color = Color { r: 1.0, g: 0.0, b: 0.0 };
+const GREEN: Color = Color { r: 0.0, g: 1.0, b: 0.0 };
+const BLUE: Color = Color { r: 0.0, g: 0.0, b: 1.0 };
 
 use std::collections::LinkedList;
 use num::clamp;
@@ -112,68 +115,29 @@ impl Canvas {
         self.canvas[y][x] = c;
     }
 
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = vec![0u8; &self.width * &self.height * 3];
+    fn clamp_to_byte(color_component: f64) -> u8 {
+        if color_component < 0.0 {
+            0u8
+        } else if color_component >= 1.0 {
+            255u8
+        } else {
+            (color_component * 256.0) as u8
+        }
+    }
+
+    fn to_rgb_bytes(&self) -> Vec<u8> {
+        const BYTES_PER_PIXEL: usize = 3;
+        let mut bytes = vec![0u8; &self.width * &self.height * BYTES_PER_PIXEL];
         let mut index = 0;
         for row in &self.canvas {
             for color in row {
-                let clamped_color = color.clamp_color();
-                bytes[index] = clamped_color.r as u8;
-                bytes[index + 1] = clamped_color.g as u8;
-                bytes[index + 2] = clamped_color.b as u8;
+                bytes[index] = Canvas::clamp_to_byte(color.r);
+                bytes[index + 1] = Canvas::clamp_to_byte(color.g);
+                bytes[index + 2] = Canvas::clamp_to_byte(color.b);
                 index += 3;
             }
         }
         bytes
-    }
-
-    fn ppm_header(&self, file_content: &mut LinkedList<String>) {
-        file_content.push_back("P3\n".to_string());
-        file_content.push_back(format!("{} {}\n", self.width, self.height));
-        file_content.push_back("255\n".to_string());
-
-    }
-
-    fn ppm_color(color_value: f64) -> String {
-        format!("{}", num::clamp(color_value * 256.0, 0.0, 255.0) as u8)
-    }
-
-    fn ppm_add_string_to_row(row: &mut String, segment: String, file_content: &mut LinkedList<String>) {
-        let rowlength = row.len();
-        if rowlength + segment.len() >= 70 {
-            row.push_str("\n");
-            file_content.push_back(row.to_string());
-            row.clear();
-        }
-        else if rowlength > 0 {
-            row.push_str(" ");
-        }
-        row.push_str(&segment);
-    }
-
-    fn ppm_row(&self, file_content: &mut LinkedList<String>, row: usize) {
-        let mut file_row = String::with_capacity(80);
-
-        for column in 0..self.width {
-            let c = self.canvas[row][column];
-            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.r), file_content);
-            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.g), file_content);
-            Canvas::ppm_add_string_to_row(&mut file_row, Canvas::ppm_color(c.b), file_content);
-        }
-        if file_row.len() > 0 {
-            file_row += "\n";
-            file_content.push_back(file_row);
-        }
-    }
-
-    fn canvas_to_ppm(&self) -> LinkedList<String> {
-
-        let mut file_content: LinkedList<String> = LinkedList::new();
-        self.ppm_header(&mut file_content);
-        for row in 0..self.height {
-            self.ppm_row(&mut file_content, row);
-        }
-        file_content
     }
 
     fn save(&self, file_name: &str) {
@@ -184,7 +148,7 @@ impl Canvas {
         encoder.set(png::ColorType::RGB).set(png::BitDepth::Eight);
         let mut writer = encoder.write_header().unwrap();
 
-        writer.write_image_data(&self.to_bytes()).unwrap(); // Save
+        writer.write_image_data(&self.to_rgb_bytes()).unwrap(); // Save
     }
 }
 
@@ -275,23 +239,13 @@ mod tests {
     }
     
     #[test]
-    fn constructing_ppm_header()
-    {
-        let c = Canvas::canvas(5, 3);
-        let mut ppm = c.canvas_to_ppm();
-
-        let marker = ppm.pop_front();
-        assert_eq!(marker, Some("P3\n".to_string()));
-        let width_height = ppm.pop_front();
-        assert_eq!(width_height, Some("5 3\n".to_string()));
-        let max_color_value = ppm.pop_front();
-        assert_eq!(max_color_value, Some("255\n".to_string()));
-    }
-
-    #[test]
     fn construct_pixel_data()
     {
-        let mut c = Canvas::canvas(5, 3);
+        const width: usize = 5;
+        const height: usize = 3;
+        const bytes_per_pixel: usize = 3;
+
+        let mut c = Canvas::canvas(width, height);
         let c1 = Color::color(1.5, 0.0, 0.0);
         let c2 = Color::color(0.0, 0.5, 0.0);
         let c3 = Color::color(-0.5, 0.0, 1.0);
@@ -300,51 +254,16 @@ mod tests {
         c.write_pixel(2, 1, c2);
         c.write_pixel(4, 2, c3);
 
-        let mut ppm = c.canvas_to_ppm();
-        let mut color_data = ppm.split_off(3);
+        let rgb_bytes = c.to_rgb_bytes();
 
-        let line4 = color_data.pop_front();
-        assert_eq!(line4, Some("255 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n".to_string()));
-        let line5 = color_data.pop_front();
-        assert_eq!(line5, Some("0 0 0 0 0 0 0 128 0 0 0 0 0 0 0\n".to_string()));
-        let line6 = color_data.pop_front();
-        assert_eq!(line6, Some("0 0 0 0 0 0 0 0 0 0 0 0 0 0 255\n".to_string()));
+        assert_eq!(255u8, rgb_bytes[0]);                                        // clamp the 1.5 r value to 255
+        assert_eq!(128u8, rgb_bytes[(2 + 1 * width) * bytes_per_pixel + 1]);     // the .5 g value should be converted to 128 
+        assert_eq!(0u8, rgb_bytes[(4 + 2 * width) * bytes_per_pixel + 0]);     // clamp the -.5 r value to 0
+        assert_eq!(255u8, rgb_bytes[(4 + 2 * width) * bytes_per_pixel + 2]);     // the 1.0 b value should be 255
     }
 
     #[test]
-    fn split_long_lines_in_ppm_file()
-    {
-        let mut c = Canvas::canvas(10, 2);
-        let col = Color::color(1.0, 0.8, 0.6);
-        for x in 0..10 {
-            for y in 0..2 {
-                c.write_pixel(x, y, col);
-            }
-        }
-
-        let mut ppm = c.canvas_to_ppm();
-        let mut color_data = ppm.split_off(3);
-        
-        let line = color_data.pop_front();
-        assert_eq!(line, Some("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n".to_string()));
-        let line = color_data.pop_front();
-        assert_eq!(line, Some("153 255 204 153 255 204 153 255 204 153 255 204 153\n".to_string()));
-        let line = color_data.pop_front();
-        assert_eq!(line, Some("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204\n".to_string()));
-        let line = color_data.pop_front();
-        assert_eq!(line, Some("153 255 204 153 255 204 153 255 204 153 255 204 153\n".to_string()));
-    }
-    #[test]
-    fn ppm_file_terminated_with_newline() {
-        let c = Canvas::canvas(5, 3);
-        let mut ppm = c.canvas_to_ppm();
-
-        let last_line = ppm.pop_back();
-        assert_eq!(last_line.unwrap().chars().last(), Some('\n'));
-    }
-
-    #[test]
-    fn ppm_to_file()
+    fn canvas_to_file()
     {
         let mut c = Canvas::canvas(100, 100);
         c.write_pixel(1, 1, Color::color(1.0, 1.0, 1.0));
