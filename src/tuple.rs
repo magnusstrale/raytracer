@@ -78,6 +78,12 @@ impl ops::Div<f64> for Tuple {
     }
 }
 
+impl From<[f64; 4]> for Tuple {
+    fn from(item: [f64; 4]) -> Self {
+        Tuple { x: item[0], y: item[1], z: item[2], w: item[3] }
+    }
+}
+
 impl Tuple {
     pub fn point(x: f64, y: f64, z: f64) -> Tuple {
         Tuple {x, y, z, w: 1.0}

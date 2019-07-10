@@ -10,7 +10,6 @@ pub struct Canvas {
     canvas: Vec<Vec<Color>>
 }
 
-
 impl Canvas {
     fn new(width: usize, height: usize) -> Canvas {
         let black_row = vec![BLACK; width];
@@ -99,11 +98,11 @@ mod tests {
     #[test]
     fn construct_pixel_data()
     {
-        const width: usize = 5;
-        const height: usize = 3;
-        const bytes_per_pixel: usize = 3;
+        const WIDTH: usize = 5;
+        const HEIGHT: usize = 3;
+        const BYTES_PER_PIXEL: usize = 3;
 
-        let mut c = Canvas::new(width, height);
+        let mut c = Canvas::new(WIDTH, HEIGHT);
         let c1 = Color::new(1.5, 0.0, 0.0);
         let c2 = Color::new(0.0, 0.5, 0.0);
         let c3 = Color::new(-0.5, 0.0, 1.0);
@@ -115,9 +114,9 @@ mod tests {
         let rgb_bytes = c.to_rgb_bytes();
 
         assert_eq!(255u8, rgb_bytes[0]);                                        // clamp the 1.5 r value to 255
-        assert_eq!(128u8, rgb_bytes[(2 + 1 * width) * bytes_per_pixel + 1]);     // the .5 g value should be converted to 128 
-        assert_eq!(0u8, rgb_bytes[(4 + 2 * width) * bytes_per_pixel + 0]);     // clamp the -.5 r value to 0
-        assert_eq!(255u8, rgb_bytes[(4 + 2 * width) * bytes_per_pixel + 2]);     // the 1.0 b value should be 255
+        assert_eq!(128u8, rgb_bytes[(2 + 1 * WIDTH) * BYTES_PER_PIXEL + 1]);     // the .5 g value should be converted to 128 
+        assert_eq!(0u8, rgb_bytes[(4 + 2 * WIDTH) * BYTES_PER_PIXEL + 0]);     // clamp the -.5 r value to 0
+        assert_eq!(255u8, rgb_bytes[(4 + 2 * WIDTH) * BYTES_PER_PIXEL + 2]);     // the 1.0 b value should be 255
     }
 
     #[test]
@@ -126,6 +125,7 @@ mod tests {
         let mut c = Canvas::new(100, 100);
         c.write_pixel(1, 1, RED);
         c.write_pixel(99, 0, GREEN);
+        c.write_pixel(99, 99, WHITE);
         c.save("black.png").expect("Failed to save file");
     }
 }
