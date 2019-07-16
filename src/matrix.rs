@@ -1,48 +1,38 @@
 use core::ops;
 use super::tuple::Tuple;
 
-type Matrix3 = [[f64; 3]; 3];
-type Matrix2 = [[f64; 2]; 2];
-
-type R4 = [f64;4];
-
-#[derive(Debug, Copy, Clone)]
-struct Row4 {
-    inner: R4
+#[derive(Debug, Clone)]
+struct Row {
+    inner: Vec<f64>
 }
 
-impl ops::Index<usize> for Row4 {
+impl ops::Index<usize> for Row {
     type Output = f64;
     fn index(&self, col: usize) -> &Self::Output {
         &self.inner[col]
     }
 }
 
-impl PartialEq for Row4 {
+impl PartialEq for Row {
     fn eq(&self, other: &Self) -> bool {
         const EPS: f64 = 0.00001;
-        (0..4).all(|col| (self[col] - other[col]).abs() < EPS)
+        (0..self.inner.len()).all(|col| (self[col] - other[col]).abs() < EPS)
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-struct Matrix4 {
-    inner: [Row4; 4]
+#[derive(Debug, Clone)]
+struct Matrix {
+    inner: Vec<Row>,
 }
 
-const IDENTITY_MATRIX: Matrix4 = Matrix4 { inner: [
-    Row4 { inner: [1.0, 0.0, 0.0, 0.0] }, 
-    Row4 { inner: [0.0, 1.0, 0.0, 0.0] },
-    Row4 { inner: [0.0, 0.0, 1.0, 0.0] },
-    Row4 { inner: [0.0, 0.0, 0.0, 1.0] } ] };
-
-impl ops::Mul<Matrix4> for Matrix4 {
-    type Output = Matrix4;
-    fn mul(self, rhs: Matrix4) -> Matrix4 {
-        let mut m = Matrix4::new_empty();
-        for row in 0..4 {
-            for col in 0..4 {
-                let a = (0..4).map(|i| self[row][i] * rhs[i][col]).sum();
+impl ops::Mul<Matrix> for Matrix {
+    type Output = Matrix;
+    fn mul(self, rhs: Matrix) -> Matrix {
+        let mut m = Matrix::new_empty();
+        let size = self.inner.len();
+        for row in 0..size {
+            for col in 0..size {
+                let a = (0..size).map(|i| self[row][i] * rhs[i][col]).sum();
                 m.set(row, col, a);
             }
         }
@@ -50,7 +40,7 @@ impl ops::Mul<Matrix4> for Matrix4 {
     }
 }
 
-impl ops::Mul<Tuple> for Matrix4 {
+impl ops::Mul<Tuple> for Matrix {
     type Output = Tuple;
     fn mul(self, rhs: Tuple) -> Tuple {
         Tuple::new(
@@ -61,29 +51,48 @@ impl ops::Mul<Tuple> for Matrix4 {
     }
 }
 
-impl ops::Index<usize> for Matrix4 {
-    type Output = Row4;
+impl ops::Index<usize> for Matrix {
+    type Output = Row;
     fn index(&self, row: usize) -> &Self::Output {
         &self.inner[row]
     }
 }
 
-impl PartialEq for Matrix4 {
+impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
-        (0..4).all(|row| self[row] == other[row])
+        (0..self.inner.len()).all(|row| self[row] == other[row])
     }
 }
 
-impl Matrix4 {
-    const EMPTY_ROW: R4 = [0.0, 0.0, 0.0, 0.0];
+impl Matrix {
+    const EMPTY_ROW: [f64; 4] = [0.0, 0.0, 0.0, 0.0];
 
-    fn new(row0: R4, row1: R4, row2 : R4, row3 : R4) -> Matrix4
+
+    fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
     {
-        Matrix4 { inner: [ Row4 { inner: row0}, Row4 { inner: row1}, Row4 { inner: row2}, Row4 { inner: row3}]}
+        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}, Row { inner: row2.to_vec()}, Row { inner: row3.to_vec()}]}
     }
 
-    fn new_empty() -> Matrix4 {
-        Matrix4::new(Matrix4::EMPTY_ROW, Matrix4::EMPTY_ROW, Matrix4::EMPTY_ROW, Matrix4::EMPTY_ROW)
+    fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Matrix
+    {
+        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}, Row { inner: row2.to_vec()}]}
+    }
+
+    fn new2(row0: [f64; 2], row1: [f64; 2]) -> Matrix
+    {
+        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}]}
+    }
+
+    fn new_empty() -> Matrix {
+        Matrix::new(Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW)
+    }
+
+    fn identity_matrix() -> Matrix {
+        Matrix { inner: vec![
+            Row { inner: vec![1.0, 0.0, 0.0, 0.0] }, 
+            Row { inner: vec![0.0, 1.0, 0.0, 0.0] },
+            Row { inner: vec![0.0, 0.0, 1.0, 0.0] },
+            Row { inner: vec![0.0, 0.0, 0.0, 1.0] } ] }
     }
 
     fn set(&mut self, row: usize, col: usize, value: f64) {
@@ -95,10 +104,11 @@ impl Matrix4 {
         Tuple::new(r[0], r[1], r[2], r[3])
     }
 
-    fn transpose(&self) -> Matrix4 {
-        let mut m = Matrix4::new_empty();
-        for row in 0..4 {
-            for col in 0..4 {
+    fn transpose(&self) -> Matrix {
+        let mut m = Matrix::new_empty();
+        let size = self.inner.len();
+        for row in 0..size {
+            for col in 0..size {
                 m.set(col, row, self[row][col]);
             }
         }
@@ -113,7 +123,7 @@ mod tests {
     #[test]
     fn construct_4x4_matrix()
     {
-        let m = Matrix4::new(
+        let m = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [5.5, 6.5, 7.5, 8.5],
             [9.0, 10.0, 11.0, 12.0],
@@ -128,11 +138,23 @@ mod tests {
     }
 
     #[test]
+    fn construct_3x3_matrix()
+    {
+        let m: Matrix = Matrix::new3(
+            [-3.0, 5.0, 0.0],
+            [1.0, -2.0, -7.0],
+            [0.0, 1.0, 1.0]);
+        assert_eq!(-3.0, m[0][0]);
+        assert_eq!(-2.0, m[1][1]);
+        assert_eq!(1.0, m[2][2]);
+    }
+    
+    #[test]
     fn construct_2x2_matrix()
     {
-        let m: Matrix2 = [
+        let m: Matrix = Matrix::new2(
             [-3.0, 5.0],
-            [1.0, -2.0]];
+            [1.0, -2.0]);
         assert_eq!(-3.0, m[0][0]);
         assert_eq!(5.0, m[0][1]);
         assert_eq!(1.0, m[1][0]);
@@ -140,25 +162,13 @@ mod tests {
     }
 
     #[test]
-    fn construct_3x3_matrix()
-    {
-        let m: Matrix3 = [
-            [-3.0, 5.0, 0.0],
-            [1.0, -2.0, -7.0],
-            [0.0, 1.0, 1.0]];
-        assert_eq!(-3.0, m[0][0]);
-        assert_eq!(-2.0, m[1][1]);
-        assert_eq!(1.0, m[2][2]);
-    }
-
-    #[test]
     fn matrix_equality_identical_matrices() {
-        let a = Matrix4::new(
+        let a = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0]);
-        let b = Matrix4::new(
+        let b = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
@@ -169,12 +179,12 @@ mod tests {
 
     #[test]
     fn matrix_equality_different_matrices() {
-        let a = Matrix4::new(
+        let a = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0]);
-        let b = Matrix4::new(
+        let b = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
@@ -185,17 +195,17 @@ mod tests {
 
     #[test]
     fn multiplying_two_matrices() {
-        let a = Matrix4::new (
+        let a = Matrix::new (
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
             [5.0, 4.0, 3.0, 2.0]);
-        let b = Matrix4::new(
+        let b = Matrix::new(
             [-2.0, 1.0, 2.0, 3.0],
             [3.0, 2.0, 1.0, -1.0],
             [4.0, 3.0, 6.0, 5.0],
             [1.0, 2.0, 7.0, 8.0]);
-        let expected = Matrix4::new(
+        let expected = Matrix::new(
             [20.0, 22.0, 50.0, 48.0],
             [44.0, 54.0, 114.0, 108.0],
             [40.0, 58.0, 110.0, 102.0],
@@ -208,7 +218,7 @@ mod tests {
     #[test]
     fn tuple_from_matrix_row()
     {
-        let a = Matrix4::new (
+        let a = Matrix::new (
             [1.0, 2.0, 3.0, 4.0],
             [5.0, 6.0, 7.0, 8.0],
             [9.0, 8.0, 7.0, 6.0],
@@ -221,7 +231,7 @@ mod tests {
     #[test]
     fn multiply_matrix_by_tuple()
     {
-        let a = Matrix4::new(
+        let a = Matrix::new(
             [1.0, 2.0, 3.0, 4.0],
             [2.0, 4.0, 4.0, 2.0],
             [8.0, 6.0, 4.0, 1.0],
@@ -235,24 +245,24 @@ mod tests {
     #[test]
     fn multiply_matrix_by_identity_matrix()
     {
-        let a = Matrix4::new(
+        let a = Matrix::new(
             [0.0, 1.0, 2.0, 8.0],
             [1.0, 2.0, 4.0, 8.0],
             [2.0, 4.0, 8.0, 16.0],
             [4.0, 8.0, 16.0, 32.0]);
         
-        assert_eq!(a, a * IDENTITY_MATRIX);
+        assert_eq!(a, a.clone() * Matrix::identity_matrix());
     }
 
     #[test]
     fn transpose_matrix()
     {
-        let a = Matrix4::new(
+        let a = Matrix::new(
             [0.0, 9.0, 3.0, 0.0],
             [9.0, 8.0, 0.0, 8.0],
             [1.0, 8.0, 5.0, 3.0],
             [0.0, 0.0, 5.0, 8.0]);        
-        let expected = Matrix4::new(
+        let expected = Matrix::new(
             [0.0, 9.0, 1.0, 0.0],
             [9.0, 8.0, 8.0, 0.0],
             [3.0, 0.0, 5.0, 5.0],
@@ -264,6 +274,6 @@ mod tests {
     #[test]
     fn transpose_identity_matrix()
     {
-        assert_eq!(IDENTITY_MATRIX, IDENTITY_MATRIX.transpose());
+        assert_eq!(Matrix::identity_matrix(), Matrix::identity_matrix().transpose());
     }
 }
