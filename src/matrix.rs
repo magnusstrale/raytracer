@@ -1,5 +1,4 @@
 use core::ops;
-//extern crate test;
 
 type Matrix3 = [[f64; 3]; 3];
 type Matrix2 = [[f64; 2]; 2];
@@ -8,25 +7,20 @@ type R4 = [f64;4];
 
 #[derive(Debug, Copy, Clone)]
 struct Row4 {
-    innerRow: R4
+    inner: R4
 }
 
 impl ops::Index<usize> for Row4 {
     type Output = f64;
     fn index(&self, col: usize) -> &Self::Output {
-        &self.innerRow[col]
+        &self.inner[col]
     }
 }
 
 impl PartialEq for Row4 {
     fn eq(&self, other: &Self) -> bool {
         const EPS: f64 = 0.00001;
-        for col in 0..4 {
-            if (self[col] - other[col]).abs() > EPS {
-                return false;
-            }
-        }
-        true
+        (0..4).all(|col| (self[col] - other[col]).abs() < EPS)
     }
 }
 
@@ -41,11 +35,8 @@ impl ops::Mul<Matrix4x4> for Matrix4x4 {
         let mut m = Matrix4x4::new_empty();
         for row in 0..4 {
             for col in 0..4 {
-                let mut acc: f64 = 0.0;
-                for i in 0..4 {
-                    acc += self[row][i] * rhs[i][col];
-                }
-                m.set(row, col, acc);
+                let a = (0..4).map(|i| self[row][i] * rhs[i][col]).sum();
+                m.set(row, col, a);
             }
         }
         m
@@ -61,12 +52,7 @@ impl ops::Index<usize> for Matrix4x4 {
 
 impl PartialEq for Matrix4x4 {
     fn eq(&self, other: &Self) -> bool {
-        for row in 0..4 {
-            if self[row] != other[row] {
-                return false;
-            }
-        }
-        true
+        (0..4).all(|row| self[row] == other[row])
     }
 }
 
@@ -75,7 +61,7 @@ impl Matrix4x4 {
 
     fn new(row0: R4, row1: R4, row2 : R4, row3 : R4) -> Matrix4x4
     {
-        Matrix4x4 { inner: [ Row4 { innerRow: row0}, Row4 { innerRow: row1}, Row4 { innerRow: row2}, Row4 { innerRow: row3}]}
+        Matrix4x4 { inner: [ Row4 { inner: row0}, Row4 { inner: row1}, Row4 { inner: row2}, Row4 { inner: row3}]}
     }
 
     fn new_empty() -> Matrix4x4 {
@@ -83,7 +69,7 @@ impl Matrix4x4 {
     }
 
     fn set(&mut self, row: usize, col: usize, value: f64) {
-        self.inner[row].innerRow[col] = value;
+        self.inner[row].inner[col] = value;
     }
 }
 
