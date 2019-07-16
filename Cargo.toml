@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 png = "^0.14.1"
+
+[lib]
+doctest = false

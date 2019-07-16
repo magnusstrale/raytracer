@@ -1,7 +1,7 @@
 use core::ops;
 
 #[derive(Debug, Copy, Clone)]
-struct Tuple {
+pub struct Tuple {
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -85,12 +85,16 @@ impl From<[f64; 4]> for Tuple {
 }
 
 impl Tuple {
+    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
+        Tuple {x, y, z, w}
+    }
+
     pub fn point(x: f64, y: f64, z: f64) -> Tuple {
-        Tuple {x, y, z, w: 1.0}
+        Tuple::new(x, y, z, 1.0)
     }
 
     pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
-        Tuple {x, y, z, w: 0.0}
+        Tuple::new(x, y, z, 0.0)
     }
 
     fn is_point(&self) -> bool {
@@ -101,23 +105,23 @@ impl Tuple {
         self.w == 0.0
     }
 
-    fn magnitude(&self) -> f64 {
+    pub fn magnitude(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
-    fn normalize(&self) -> Tuple {
+    pub fn normalize(&self) -> Tuple {
         let m = self.magnitude();
         Tuple::vector(self.x / m, self.y / m, self.z / m)
     }
 
-    fn dot(&self, t: &Tuple) -> f64 {
+    pub fn dot(&self, t: &Tuple) -> f64 {
         self.x * t.x +
         self.y * t.y +
         self.z * t.z +
         self.w * t.w
     }
 
-    fn cross(&self, t: &Tuple) -> Tuple {
+    pub fn cross(&self, t: &Tuple) -> Tuple {
         Tuple::vector(
             self.y * t.z - self.z * t.y,
             self.z * t.x - self.x * t.z,
