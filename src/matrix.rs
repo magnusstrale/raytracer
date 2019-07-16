@@ -135,10 +135,10 @@ impl Matrix {
     fn submatrix(&self, row: usize, col: usize) -> Matrix {
         let size = self.inner.len();
         let mut m = match size {
-            4 => Matrix::new_empty3(),
-            3 => Matrix::new_empty2(),
-            _ => Matrix::new_empty()
-        };
+            4 => Option::Some(Matrix::new_empty3()),
+            3 => Option::Some(Matrix::new_empty2()),
+            _ => Option::None
+        }.expect("Invalid matrix size, only 3x3 and 4x4 supported");
         let mut r_new = 0;
         
         for r in 0..size {
@@ -345,5 +345,15 @@ mod tests {
             [-8.0, 8.0, 6.0], 
             [-7.0, -1.0, 1.0]);
         assert_eq!(expected, a.submatrix(2, 1));
+    }
+
+    #[test]
+    #[should_panic]
+    fn submatrix_of_2x2_matrix_shold_panic()
+    {
+        let a = Matrix::new2(
+            [-6.0, 2.0], 
+            [-7.0, 1.0]);
+        a.submatrix(1, 1);
     }
 }
