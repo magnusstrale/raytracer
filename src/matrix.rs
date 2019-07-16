@@ -16,7 +16,9 @@ impl ops::Index<usize> for Row {
 impl PartialEq for Row {
     fn eq(&self, other: &Self) -> bool {
         const EPS: f64 = 0.00001;
-        (0..self.inner.len()).all(|col| (self[col] - other[col]).abs() < EPS)
+        let size = self.inner.len();
+        size == other.inner.len() &&
+        (0..size).all(|col| (self[col] - other[col]).abs() < EPS)
     }
 }
 
@@ -60,13 +62,16 @@ impl ops::Index<usize> for Matrix {
 
 impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
-        (0..self.inner.len()).all(|row| self[row] == other[row])
+        let size = self.inner.len();
+        size == other.inner.len() &&
+        (0..size).all(|row| self[row] == other[row])
     }
 }
 
 impl Matrix {
-    const EMPTY_ROW: [f64; 4] = [0.0, 0.0, 0.0, 0.0];
-
+    const EMPTY_ROW:  [f64; 4] = [0.0, 0.0, 0.0, 0.0];
+    const EMPTY_ROW3: [f64; 3] = [0.0, 0.0, 0.0];
+    const EMPTY_ROW2: [f64; 2] = [0.0, 0.0];
 
     fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
     {
@@ -85,6 +90,14 @@ impl Matrix {
 
     fn new_empty() -> Matrix {
         Matrix::new(Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW)
+    }
+
+    fn new_empty3() -> Matrix {
+        Matrix::new3(Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3)
+    }
+
+    fn new_empty2() -> Matrix {
+        Matrix::new2(Matrix::EMPTY_ROW2, Matrix::EMPTY_ROW2)
     }
 
     fn identity_matrix() -> Matrix {
@@ -111,6 +124,32 @@ impl Matrix {
             for col in 0..size {
                 m.set(col, row, self[row][col]);
             }
+        }
+        m
+    }
+
+    fn determinant2(&self) -> f64 {
+        self[0][0] * self[1][1] - self[0][1] * self[1][0]
+    }
+
+    fn submatrix(&self, row: usize, col: usize) -> Matrix {
+        let size = self.inner.len();
+        let mut m = match size {
+            4 => Matrix::new_empty3(),
+            3 => Matrix::new_empty2(),
+            _ => Matrix::new_empty()
+        };
+        let mut r_new = 0;
+        
+        for r in 0..size {
+            if r == row { continue; }
+            let mut c_new = 0;
+            for c in 0..size {
+                if c == col { continue; }
+                m.set(r_new, c_new, self[r][c]);
+                c_new += 1;
+            }
+            r_new += 1;
         }
         m
     }
@@ -148,7 +187,7 @@ mod tests {
         assert_eq!(-2.0, m[1][1]);
         assert_eq!(1.0, m[2][2]);
     }
-    
+
     #[test]
     fn construct_2x2_matrix()
     {
@@ -275,5 +314,36 @@ mod tests {
     fn transpose_identity_matrix()
     {
         assert_eq!(Matrix::identity_matrix(), Matrix::identity_matrix().transpose());
+    }
+
+    #[test]
+    fn determinant_2x2_matrix()
+    {
+        let a = Matrix::new2([1.0, 5.0], [-3.0, 2.0]);
+        assert_eq!(17.0, a.determinant2());
+    }
+
+    #[test]
+    fn submatrix_of_3x3_is_2x2_matrix() {
+        let a = Matrix::new3(
+            [1.0, 5.0, 0.0],
+            [-3.0, 2.0, 7.0],
+            [0.0, 6.0, -3.0]);
+        let expected = Matrix::new2([-3.0, 2.0], [0.0, 6.0]);
+        assert_eq!(expected, a.submatrix(0, 2));
+    }
+
+    #[test]
+    fn submatrix_of_4x4_is_3x3_matrix() {
+        let a = Matrix::new(
+            [-6.0, 1.0, 1.0, 6.0],
+            [-8.0, 5.0, 8.0, 6.0],
+            [-1.0, 0.0, 8.0, 2.0],
+            [-7.0, 1.0, -1.0, 1.0]);
+        let expected = Matrix::new3(
+            [-6.0, 1.0, 6.0], 
+            [-8.0, 8.0, 6.0], 
+            [-7.0, -1.0, 1.0]);
+        assert_eq!(expected, a.submatrix(2, 1));
     }
 }
