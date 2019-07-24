@@ -131,8 +131,8 @@ impl Matrix {
     }
 
     fn transpose(&self) -> Matrix {
-        let mut m = Matrix::new_empty4();
-        let size = self.inner.len();
+        let mut m = self.empty();
+        let size = self.size();
         for row in 0..size {
             for col in 0..size {
                 m.set(col, row, self[row][col]);
@@ -146,11 +146,9 @@ impl Matrix {
         match size {
             2 => self[0][0] * self[1][1] - self[0][1] * self[1][0],
             3...4 => {
-                let mut d = 0.0;
-                for c in 0..size {
-                    d += self[0][c] * self.cofactor(0, c);
-                }
-                d
+                let r = &self[0].inner;
+                let mut col = 0;
+                r.iter().map(|c| { let v = c * self.cofactor(0, col); col += 1; v } ).sum()
             }
             _ => { panic!("Invalid matrix size, only 2x2, 3x3 and 4x4 supported") }
         }
@@ -179,17 +177,12 @@ impl Matrix {
     }
 
     fn minor(&self, row: usize, col: usize) -> f64 {
-        let sub = self.submatrix(row, col);
-        sub.determinant()
+        self.submatrix(row, col).determinant()
     }
 
     fn cofactor(&self, row: usize, col: usize) -> f64 {
         let minor = self.minor(row, col);
         if (row + col) & 1 == 1 { -minor } else { minor }
-    }
-
-    fn invertible(&self) -> bool {
-        self.determinant() != 0.0
     }
 
     fn inverse(&self) -> Option<Matrix> {
@@ -471,7 +464,7 @@ mod tests {
             [4.0, -9.0, 3.0, -7.0],
             [9.0, 1.0, 7.0, -6.0]);
         assert_eq!(-2120.0, a.determinant());
-        assert!(a.invertible());
+        assert_ne!(Option::None, a.inverse());
     }
 
     #[test]
@@ -483,7 +476,7 @@ mod tests {
             [0.0, -5.0, 1.0, -5.0],
             [0.0, 0.0, 0.0, 0.0]);
         assert_eq!(0.0, a.determinant());
-        assert!(!a.invertible());
+        assert_eq!(Option::None, a.inverse());
     }
 
     #[test]
