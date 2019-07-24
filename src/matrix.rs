@@ -27,10 +27,10 @@ struct Matrix {
     inner: Vec<Row>,
 }
 
-impl ops::Mul<Matrix> for Matrix {
+impl ops::Mul<&Matrix> for &Matrix {
     type Output = Matrix;
-    fn mul(self, rhs: Matrix) -> Matrix {
-        let mut m = Matrix::new_empty();
+    fn mul(self, rhs: &Matrix) -> Matrix {
+        let mut m = self.empty();
         let size = self.inner.len();
         for row in 0..size {
             for col in 0..size {
@@ -88,7 +88,7 @@ impl Matrix {
         Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}]}
     }
 
-    fn new_empty() -> Matrix {
+    fn new_empty4() -> Matrix {
         Matrix::new(Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW)
     }
 
@@ -98,6 +98,15 @@ impl Matrix {
 
     fn new_empty2() -> Matrix {
         Matrix::new2(Matrix::EMPTY_ROW2, Matrix::EMPTY_ROW2)
+    }
+
+    fn empty(&self) -> Matrix {
+        match self.size() {
+            2 => Matrix::new_empty2(),
+            3 => Matrix::new_empty3(),
+            4 => Matrix::new_empty4(),
+            _ => { panic!("bad dimension") }
+        }
     }
 
     fn identity_matrix() -> Matrix {
@@ -112,13 +121,17 @@ impl Matrix {
         self.inner[row].inner[col] = value;
     }
 
+    fn size(&self) -> usize {
+        self.inner.len()
+    }
+
     fn tuple(&self, row: usize) -> Tuple {
         let r = &self[row];
         Tuple::new(r[0], r[1], r[2], r[3])
     }
 
     fn transpose(&self) -> Matrix {
-        let mut m = Matrix::new_empty();
+        let mut m = Matrix::new_empty4();
         let size = self.inner.len();
         for row in 0..size {
             for col in 0..size {
@@ -128,17 +141,28 @@ impl Matrix {
         m
     }
 
-    fn determinant2(&self) -> f64 {
-        self[0][0] * self[1][1] - self[0][1] * self[1][0]
+    fn determinant(&self) -> f64 {
+        let size = self.size();
+        match size {
+            2 => self[0][0] * self[1][1] - self[0][1] * self[1][0],
+            3...4 => {
+                let mut d = 0.0;
+                for c in 0..size {
+                    d += self[0][c] * self.cofactor(0, c);
+                }
+                d
+            }
+            _ => { panic!("Invalid matrix size, only 2x2, 3x3 and 4x4 supported") }
+        }
     }
 
     fn submatrix(&self, row: usize, col: usize) -> Matrix {
-        let size = self.inner.len();
+        let size = self.size();
         let mut m = match size {
-            4 => Option::Some(Matrix::new_empty3()),
-            3 => Option::Some(Matrix::new_empty2()),
-            _ => Option::None
-        }.expect("Invalid matrix size, only 3x3 and 4x4 supported");
+            4 => Matrix::new_empty3(),
+            3 => Matrix::new_empty2(),
+            _ => { panic!("Invalid matrix size, only 3x3 and 4x4 supported") }
+        };
         let mut r_new = 0;
         
         for r in 0..size {
@@ -152,6 +176,33 @@ impl Matrix {
             r_new += 1;
         }
         m
+    }
+
+    fn minor(&self, row: usize, col: usize) -> f64 {
+        let sub = self.submatrix(row, col);
+        sub.determinant()
+    }
+
+    fn cofactor(&self, row: usize, col: usize) -> f64 {
+        let minor = self.minor(row, col);
+        if (row + col) & 1 == 1 { -minor } else { minor }
+    }
+
+    fn invertible(&self) -> bool {
+        self.determinant() != 0.0
+    }
+
+    fn inverse(&self) -> Option<Matrix> {
+        let det = self.determinant();
+        if det == 0.0 { return Option::None; }
+        let size = self.size();
+        let mut inverse = self.empty();
+        for row in 0..size {
+            for col in 0..size {
+                inverse.set(col, row, self.cofactor(row, col) / det);
+            }
+        }
+        Option::Some(inverse)
     }
 }
 
@@ -250,7 +301,7 @@ mod tests {
             [40.0, 58.0, 110.0, 102.0],
             [16.0, 26.0, 46.0, 42.0]);
 
-        let result = a * b;
+        let result = &a * &b;
         assert_eq!(expected, result);
     }
 
@@ -290,7 +341,7 @@ mod tests {
             [2.0, 4.0, 8.0, 16.0],
             [4.0, 8.0, 16.0, 32.0]);
         
-        assert_eq!(a, a.clone() * Matrix::identity_matrix());
+        assert_eq!(a, &a * &Matrix::identity_matrix());
     }
 
     #[test]
@@ -320,7 +371,7 @@ mod tests {
     fn determinant_2x2_matrix()
     {
         let a = Matrix::new2([1.0, 5.0], [-3.0, 2.0]);
-        assert_eq!(17.0, a.determinant2());
+        assert_eq!(17.0, a.determinant());
     }
 
     #[test]
@@ -355,5 +406,155 @@ mod tests {
             [-6.0, 2.0], 
             [-7.0, 1.0]);
         a.submatrix(1, 1);
+    }
+
+    #[test]
+    fn minor_of_3x3_matrix()
+    {
+        let a = Matrix::new3(
+            [3.0, 5.0, 0.0],
+            [2.0, -1.0, -7.0],
+            [6.0, -1.0, 5.0]
+        );
+        let b = a.submatrix(1, 0);
+        assert_eq!(25.0, b.determinant());
+        assert_eq!(25.0, a.minor(1,0));
+    }
+
+    #[test]
+    fn cofactor_of_3x3_matrix() {
+        let a = Matrix::new3(
+            [3.0, 5.0, 0.0],
+            [2.0, -1.0, -7.0],
+            [6.0, -1.0, 5.0]
+        );
+        assert_eq!(-12.0, a.minor(0, 0));
+        assert_eq!(-12.0, a.cofactor(0, 0));
+        assert_eq!(25.0, a.minor(1, 0));
+        assert_eq!(-25.0, a.cofactor(1, 0));
+    }
+
+    #[test]
+    fn determinant_of_3x3_matrix() {
+        let a = Matrix::new3(
+            [1.0, 2.0, 6.0],
+            [-5.0, 8.0, -4.0],
+            [2.0, 6.0, 4.0]
+        );
+        assert_eq!(56.0, a.cofactor(0, 0));
+        assert_eq!(12.0, a.cofactor(0, 1));
+        assert_eq!(-46.0, a.cofactor(0, 2));
+        assert_eq!(-196.0, a.determinant());
+    }
+
+    #[test]
+    fn determinant_of_4x4_matrix() {
+        let a = Matrix::new(
+            [-2.0, -8.0, 3.0, 5.0],
+            [-3.0, 1.0, 7.0, 3.0],
+            [1.0, 2.0, -9.0, 6.0],
+            [-6.0, 7.0, 7.0, -9.0]
+        );
+        assert_eq!(690.0, a.cofactor(0, 0));
+        assert_eq!(447.0, a.cofactor(0, 1));
+        assert_eq!(210.0, a.cofactor(0, 2));
+        assert_eq!(51.0, a.cofactor(0, 3));
+        assert_eq!(-4071.0, a.determinant());
+    }
+
+    #[test]
+    fn matrix_is_invertible()
+    {
+        let a = Matrix::new(
+            [6.0, 4.0, 4.0, 4.0],
+            [5.0, 5.0, 7.0, 6.0],
+            [4.0, -9.0, 3.0, -7.0],
+            [9.0, 1.0, 7.0, -6.0]);
+        assert_eq!(-2120.0, a.determinant());
+        assert!(a.invertible());
+    }
+
+    #[test]
+    fn matrix_is_not_invertible()
+    {
+        let a = Matrix::new(
+            [-4.0, 2.0, -2.0, -3.0],
+            [9.0, 6.0, 2.0, 6.0],
+            [0.0, -5.0, 1.0, -5.0],
+            [0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(0.0, a.determinant());
+        assert!(!a.invertible());
+    }
+
+    #[test]
+    fn inverse_of_matrix() {
+        let a = Matrix::new(
+            [-5.0, 2.0, 6.0, -8.0],
+            [1.0, -5.0, 1.0, 8.0],
+            [7.0, 7.0, -6.0, -7.0],
+            [1.0, -3.0, 7.0, 4.0]);
+        let b = a.inverse().unwrap();
+        assert_eq!(532.0, a.determinant());
+        assert_eq!(-160.0, a.cofactor(2, 3));
+        assert_eq!(-160.0 / 532.0, b[3][2]);
+        assert_eq!(105.0, a.cofactor(3, 2));
+        assert_eq!(105.0 / 532.0, b[2][3]);
+
+        let expected = Matrix::new(
+            [0.21805, 0.45113, 0.24060, -0.04511],
+            [-0.80827, -1.45677, -0.44361, 0.52068],
+            [-0.07895, -0.22368, -0.05263, 0.19737],
+            [-0.52256, -0.81391, -0.30075, 0.30639]);
+        assert_eq!(expected, b);
+    }
+
+    #[test]
+    fn inverse_of_another_matrix() {
+        let a = Matrix::new(
+            [8.0, -5.0, 9.0, 2.0],
+            [7.0, 5.0, 6.0, 1.0],
+            [-6.0, 0.0, 9.0, 6.0],
+            [-3.0, 0.0, -9.0, -4.0]);
+        let b = a.inverse().unwrap();
+
+        let expected = Matrix::new(
+            [-0.15385, -0.15385, -0.28205, -0.53846],
+            [-0.07692,  0.12308,  0.02564,  0.03077],
+            [ 0.35897,  0.35897,  0.43590,  0.92308],
+            [-0.69231, -0.69231, -0.76923, -1.92308]);
+        assert_eq!(expected, b);
+    }
+
+    #[test]
+    fn inverse_of_a_third_matrix() {
+        let a = Matrix::new(
+            [9.0, 3.0, 0.0, 9.0],
+            [-5.0, -2.0, -6.0, -3.0],
+            [-4.0, 9.0, 6.0, 4.0],
+            [-7.0, 6.0, 6.0, 2.0]);
+        let b = a.inverse().unwrap();
+
+        let expected = Matrix::new(
+            [-0.04074, -0.07778,  0.14444, -0.22222],
+            [-0.07778,  0.03333,  0.36667, -0.33333],
+            [-0.02901, -0.14630, -0.10926,  0.12963],
+            [ 0.17778,  0.06667, -0.26667,  0.33333]);
+        assert_eq!(expected, b);
+    }
+
+    #[test]
+    fn multiply_matrix_product_by_inverse() {
+        let a = Matrix::new(
+            [3.0, -9.0, 7.0, 3.0],
+            [3.0, -8.0, 2.0, -9.0],
+            [-4.0, 4.0, 4.0, 1.0],
+            [-6.0, 5.0, -1.0, 1.0]);
+        let b = Matrix::new(
+            [8.0, 2.0, 2.0, 2.0],
+            [3.0, -1.0, 7.0, 0.0],
+            [7.0, 0.0, 5.0, 4.0],
+            [6.0, -2.0, 0.0, 5.0]);
+        let c = &a * &b;
+        assert_eq!(a, &c * &b.inverse().unwrap());
     }
 }
