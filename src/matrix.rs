@@ -93,7 +93,7 @@ impl Matrix {
                 Matrix::coerce_array3(row0), 
                 Matrix::coerce_array3(row1), 
                 Matrix::coerce_array3(row2), 
-                Row { inner: Matrix::EMPTY_ROW, size: 3 }], 
+                Matrix::coerce_array3(Matrix::EMPTY_ROW3)], 
             size: 3}
     }
 
@@ -103,8 +103,8 @@ impl Matrix {
             inner: [ 
                 Matrix::coerce_array2(row0), 
                 Matrix::coerce_array2(row1), 
-                Row { inner: Matrix::EMPTY_ROW, size: 2 }, 
-                Row { inner: Matrix::EMPTY_ROW, size: 2 }], 
+                Matrix::coerce_array2(Matrix::EMPTY_ROW2), 
+                Matrix::coerce_array2(Matrix::EMPTY_ROW2)], 
             size: 2 }
     }
 
