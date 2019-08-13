@@ -75,7 +75,7 @@ impl Matrix {
     const EMPTY_ROW3: [f64; 3] = [0.0, 0.0, 0.0];
     const EMPTY_ROW2: [f64; 2] = [0.0, 0.0];
 
-    fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
+    pub fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
     {
         Matrix { 
             inner: [ 
@@ -86,7 +86,7 @@ impl Matrix {
             size: 4}
     }
 
-    fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Matrix
+    pub fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Matrix
     {
         Matrix { 
             inner: [ 
@@ -97,7 +97,7 @@ impl Matrix {
             size: 3}
     }
 
-    fn new2(row0: [f64; 2], row1: [f64; 2]) -> Matrix
+    pub fn new2(row0: [f64; 2], row1: [f64; 2]) -> Matrix
     {
         Matrix { 
             inner: [ 
@@ -108,15 +108,15 @@ impl Matrix {
             size: 2 }
     }
 
-    fn new_empty4() -> Matrix {
+    pub fn new_empty4() -> Matrix {
         Matrix::new(Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW)
     }
 
-    fn new_empty3() -> Matrix {
+    pub fn new_empty3() -> Matrix {
         Matrix::new3(Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3)
     }
 
-    fn new_empty2() -> Matrix {
+    pub fn new_empty2() -> Matrix {
         Matrix::new2(Matrix::EMPTY_ROW2, Matrix::EMPTY_ROW2)
     }
 
@@ -137,7 +137,7 @@ impl Matrix {
         }
     }
 
-    fn identity_matrix() -> Matrix {
+    pub fn identity_matrix() -> Matrix {
         Matrix { 
             inner: [
                 Row { inner: [1.0, 0.0, 0.0, 0.0], size: 4 }, 
@@ -147,7 +147,7 @@ impl Matrix {
             size: 4 }
     }
 
-    fn set(&mut self, row: usize, col: usize, value: f64) {
+    pub fn set(&mut self, row: usize, col: usize, value: f64) {
         self.inner[row].inner[col] = value;
     }
 
@@ -211,7 +211,7 @@ impl Matrix {
         if (row + col) & 1 == 1 { -minor } else { minor }
     }
 
-    fn inverse(&self) -> Option<Matrix> {
+    pub fn inverse(&self) -> Option<Matrix> {
         let det = self.determinant();
         if det == 0.0 { return Option::None; }
         let size = self.size;
@@ -222,10 +222,6 @@ impl Matrix {
             }
         }
         Option::Some(inverse)
-    }
-
-    fn translation(x: f64, y: f64, z: f64) -> Matrix {
-        Matrix::new_empty4()
     }
 }
 
@@ -579,14 +575,5 @@ mod tests {
             [6.0, -2.0, 0.0, 5.0]);
         let c = a * b;
         assert_eq!(a, c * b.inverse().unwrap());
-    }
-
-    #[test]
-    fn multiply_by_translation_matrix()
-    {
-        let transform = Matrix::translation(5.0, -3.0, 2.0);
-        let p = Tuple::point(-3.0, 4.0, 5.0);
-        let actual = transform * p;
-        let expected = Tuple::point(2.0, 1.0, 7.0);
     }
 }
