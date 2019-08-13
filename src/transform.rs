@@ -45,6 +45,17 @@ impl Matrix {
         m.set(1, 1, rad.cos());
         m
     }
+
+    fn shearing(x_to_y: f64, x_to_z: f64, y_to_x: f64, y_to_z: f64, z_to_x: f64, z_to_y: f64) -> Matrix {
+        let mut m = Matrix::identity_matrix();
+        m.set(0, 1, x_to_y);
+        m.set(0, 2, x_to_z);
+        m.set(1, 0, y_to_x);
+        m.set(1, 2, y_to_z);
+        m.set(2, 0, z_to_x);
+        m.set(2, 1, z_to_y);
+        m
+    }
 }
 
 #[cfg(test)]
@@ -57,6 +68,7 @@ mod tests {
         let p = Tuple::point(-3.0, 4.0, 5.0);
         let actual = transform * p;
         let expected = Tuple::point(2.0, 1.0, 7.0);
+        
         assert_eq!(actual, expected);
     }
 
@@ -67,6 +79,7 @@ mod tests {
         let p = Tuple::point(-3.0, 4.0, 5.0);
         let actual = inv * p;
         let expected = Tuple::point(-8.0, 7.0, 3.0);
+
         assert_eq!(actual, expected);
     }
 
@@ -75,6 +88,7 @@ mod tests {
         let transform = Matrix::translation(5.0, -3.0, 2.0);
         let v = Tuple::vector(-3.0, 4.0, 5.0);
         let actual = transform * v;
+
         assert_eq!(actual, v);
     }
 
@@ -164,5 +178,94 @@ mod tests {
 
         assert_eq!(actual_half_quarter, Tuple::point(-2.0_f64.sqrt()/2.0, 2.0_f64.sqrt()/2.0, 0.0));
         assert_eq!(actual_full_quarter, Tuple::point(-1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn shearing_transformation_moves_x_in_proportion_to_y() {
+        let transform = Matrix::shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(5.0, 3.0, 4.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn shearing_transformation_moves_x_in_proportion_to_z() {
+        let transform = Matrix::shearing(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(6.0, 3.0, 4.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn shearing_transformation_moves_y_in_proportion_to_x() {
+        let transform = Matrix::shearing(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(2.0, 5.0, 4.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn shearing_transformation_moves_y_in_proportion_to_z() {
+        let transform = Matrix::shearing(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(2.0, 7.0, 4.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn shearing_transformation_moves_z_in_proportion_to_x() {
+        let transform = Matrix::shearing(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(2.0, 3.0, 6.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn shearing_transformation_moves_z_in_proportion_to_y() {
+        let transform = Matrix::shearing(0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let actual = transform * p;
+        let expected = Tuple::point(2.0, 3.0, 7.0);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn individual_transformations_applied_in_sequence() {
+        let p = Tuple::point(1.0, 0.0, 1.0);
+        let a = Matrix::rotation_x(FRAC_PI_2);
+        let b = Matrix::scaling(5.0, 5.0, 5.0);
+        let c = Matrix::translation(10.0, 5.0, 7.0);
+
+        let p2 = a * p;
+        assert_eq!(p2, Tuple::point(1.0, -1.0, 0.0));
+
+        let p3 = b * p2;
+        assert_eq!(p3, Tuple::point(5.0, -5.0, 0.0));
+
+        let p4 = c * p3;
+        assert_eq!(p4, Tuple::point(15.0, 0.0, 7.0));
+    }
+
+    #[test]
+    fn chained_transformations_applied_in_reverse_order() {
+        let p = Tuple::point(1.0, 0.0, 1.0);
+        let a = Matrix::rotation_x(FRAC_PI_2);
+        let b = Matrix::scaling(5.0, 5.0, 5.0);
+        let c = Matrix::translation(10.0, 5.0, 7.0);
+
+        let t = c * b * a;
+        let actual = t * p;
+        assert_eq!(actual, Tuple::point(15.0, 0.0, 7.0));
     }
 }
