@@ -1,14 +1,16 @@
 use core::ops;
 use super::tuple::Tuple;
 
-#[derive(Debug, Clone)]
-struct Row {
-    inner: Vec<f64>
+#[derive(Debug, Copy, Clone)]
+pub struct Row {
+    inner: [f64; 4],
+    size: usize
 }
 
 impl ops::Index<usize> for Row {
     type Output = f64;
     fn index(&self, col: usize) -> &Self::Output {
+        if col >= self.size { panic!("Index out-of-bounds") }
         &self.inner[col]
     }
 }
@@ -16,22 +18,21 @@ impl ops::Index<usize> for Row {
 impl PartialEq for Row {
     fn eq(&self, other: &Self) -> bool {
         const EPS: f64 = 0.00001;
-        let size = self.inner.len();
-        size == other.inner.len() &&
-        (0..size).all(|col| (self[col] - other[col]).abs() < EPS)
+        (0..self.size).all(|col| (self[col] - other[col]).abs() < EPS)
     }
 }
 
-#[derive(Debug, Clone)]
-struct Matrix {
-    inner: Vec<Row>,
+#[derive(Debug, Copy, Clone)]
+pub struct Matrix {
+    inner: [Row; 4],
+    pub size: usize
 }
 
-impl ops::Mul<&Matrix> for &Matrix {
+impl ops::Mul<Matrix> for Matrix {
     type Output = Matrix;
-    fn mul(self, rhs: &Matrix) -> Matrix {
+    fn mul(self, rhs: Matrix) -> Matrix {
         let mut m = self.empty();
-        let size = self.inner.len();
+        let size = self.size;
         for row in 0..size {
             for col in 0..size {
                 let a = (0..size).map(|i| self[row][i] * rhs[i][col]).sum();
@@ -56,15 +57,16 @@ impl ops::Mul<Tuple> for Matrix {
 impl ops::Index<usize> for Matrix {
     type Output = Row;
     fn index(&self, row: usize) -> &Self::Output {
+        if row >= self.size { panic!("Index out-of-bounds") }
         &self.inner[row]
     }
 }
 
 impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
-        let size = self.inner.len();
-        size == other.inner.len() &&
-        (0..size).all(|row| self[row] == other[row])
+        
+        self.size == other.size &&
+        (0..self.size).all(|row| self[row] == other[row])
     }
 }
 
@@ -75,17 +77,35 @@ impl Matrix {
 
     fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
     {
-        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}, Row { inner: row2.to_vec()}, Row { inner: row3.to_vec()}]}
+        Matrix { 
+            inner: [ 
+                Row { inner: row0, size: 4 }, 
+                Row { inner: row1, size: 4 }, 
+                Row { inner: row2, size: 4 }, 
+                Row { inner: row3, size: 4 }], 
+            size: 4}
     }
 
     fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Matrix
     {
-        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}, Row { inner: row2.to_vec()}]}
+        Matrix { 
+            inner: [ 
+                Matrix::coerce_array3(row0), 
+                Matrix::coerce_array3(row1), 
+                Matrix::coerce_array3(row2), 
+                Row { inner: Matrix::EMPTY_ROW, size: 3 }], 
+            size: 3}
     }
 
     fn new2(row0: [f64; 2], row1: [f64; 2]) -> Matrix
     {
-        Matrix { inner: vec![ Row { inner: row0.to_vec()}, Row { inner: row1.to_vec()}]}
+        Matrix { 
+            inner: [ 
+                Matrix::coerce_array2(row0), 
+                Matrix::coerce_array2(row1), 
+                Row { inner: Matrix::EMPTY_ROW, size: 2 }, 
+                Row { inner: Matrix::EMPTY_ROW, size: 2 }], 
+            size: 2 }
     }
 
     fn new_empty4() -> Matrix {
@@ -100,8 +120,16 @@ impl Matrix {
         Matrix::new2(Matrix::EMPTY_ROW2, Matrix::EMPTY_ROW2)
     }
 
+    fn coerce_array2(arr: [f64; 2]) -> Row {
+        Row { inner: [arr[0], arr[1], 0.0, 0.0], size: 2 }
+    }
+
+    fn coerce_array3(arr: [f64; 3]) -> Row {
+        Row { inner: [arr[0], arr[1], arr[2], 0.0], size: 3 }
+    }
+
     fn empty(&self) -> Matrix {
-        match self.size() {
+        match self.size {
             2 => Matrix::new_empty2(),
             3 => Matrix::new_empty3(),
             4 => Matrix::new_empty4(),
@@ -110,19 +138,17 @@ impl Matrix {
     }
 
     fn identity_matrix() -> Matrix {
-        Matrix { inner: vec![
-            Row { inner: vec![1.0, 0.0, 0.0, 0.0] }, 
-            Row { inner: vec![0.0, 1.0, 0.0, 0.0] },
-            Row { inner: vec![0.0, 0.0, 1.0, 0.0] },
-            Row { inner: vec![0.0, 0.0, 0.0, 1.0] } ] }
+        Matrix { 
+            inner: [
+                Row { inner: [1.0, 0.0, 0.0, 0.0], size: 4 }, 
+                Row { inner: [0.0, 1.0, 0.0, 0.0], size: 4 },
+                Row { inner: [0.0, 0.0, 1.0, 0.0], size: 4 },
+                Row { inner: [0.0, 0.0, 0.0, 1.0], size: 4 } ], 
+            size: 4 }
     }
 
     fn set(&mut self, row: usize, col: usize, value: f64) {
         self.inner[row].inner[col] = value;
-    }
-
-    fn size(&self) -> usize {
-        self.inner.len()
     }
 
     fn tuple(&self, row: usize) -> Tuple {
@@ -132,7 +158,7 @@ impl Matrix {
 
     fn transpose(&self) -> Matrix {
         let mut m = self.empty();
-        let size = self.size();
+        let size = self.size;
         for row in 0..size {
             for col in 0..size {
                 m.set(col, row, self[row][col]);
@@ -142,7 +168,7 @@ impl Matrix {
     }
 
     fn determinant(&self) -> f64 {
-        let size = self.size();
+        let size = self.size;
         match size {
             2 => self[0][0] * self[1][1] - self[0][1] * self[1][0],
             3...4 => {
@@ -155,7 +181,7 @@ impl Matrix {
     }
 
     fn submatrix(&self, row: usize, col: usize) -> Matrix {
-        let size = self.size();
+        let size = self.size;
         let mut m = match size {
             4 => Matrix::new_empty3(),
             3 => Matrix::new_empty2(),
@@ -188,7 +214,7 @@ impl Matrix {
     fn inverse(&self) -> Option<Matrix> {
         let det = self.determinant();
         if det == 0.0 { return Option::None; }
-        let size = self.size();
+        let size = self.size;
         let mut inverse = self.empty();
         for row in 0..size {
             for col in 0..size {
@@ -196,6 +222,10 @@ impl Matrix {
             }
         }
         Option::Some(inverse)
+    }
+
+    fn translation(x: f64, y: f64, z: f64) -> Matrix {
+        Matrix::new_empty4()
     }
 }
 
@@ -294,7 +324,7 @@ mod tests {
             [40.0, 58.0, 110.0, 102.0],
             [16.0, 26.0, 46.0, 42.0]);
 
-        let result = &a * &b;
+        let result = a * b;
         assert_eq!(expected, result);
     }
 
@@ -334,7 +364,7 @@ mod tests {
             [2.0, 4.0, 8.0, 16.0],
             [4.0, 8.0, 16.0, 32.0]);
         
-        assert_eq!(a, &a * &Matrix::identity_matrix());
+        assert_eq!(a, a * Matrix::identity_matrix());
     }
 
     #[test]
@@ -547,7 +577,16 @@ mod tests {
             [3.0, -1.0, 7.0, 0.0],
             [7.0, 0.0, 5.0, 4.0],
             [6.0, -2.0, 0.0, 5.0]);
-        let c = &a * &b;
-        assert_eq!(a, &c * &b.inverse().unwrap());
+        let c = a * b;
+        assert_eq!(a, c * b.inverse().unwrap());
+    }
+
+    #[test]
+    fn multiply_by_translation_matrix()
+    {
+        let transform = Matrix::translation(5.0, -3.0, 2.0);
+        let p = Tuple::point(-3.0, 4.0, 5.0);
+        let actual = transform * p;
+        let expected = Tuple::point(2.0, 1.0, 7.0);
     }
 }
