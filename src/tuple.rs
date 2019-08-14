@@ -97,11 +97,11 @@ impl Tuple {
         Tuple::new(x, y, z, 0.0)
     }
 
-    fn is_point(&self) -> bool {
+    pub fn is_point(&self) -> bool {
         self.w == 1.0
     }
 
-    fn is_vector(&self) -> bool {
+    pub fn is_vector(&self) -> bool {
         self.w == 0.0
     }
 
