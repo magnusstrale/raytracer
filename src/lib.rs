@@ -5,3 +5,4 @@ pub mod matrix;
 pub mod transform;
 pub mod ray;
 pub mod sphere;
+pub mod intersection;
