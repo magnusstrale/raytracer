@@ -19,7 +19,7 @@ impl Matrix {
         m
     }
 
-    fn rotation_x(rad: f64) -> Matrix {
+    pub fn rotation_x(rad: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(1, 1, rad.cos());
         m.set(1, 2, -rad.sin());
@@ -28,7 +28,7 @@ impl Matrix {
         m
     }
 
-    fn rotation_y(rad: f64) -> Matrix {
+    pub fn rotation_y(rad: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(0, 0, rad.cos());
         m.set(0, 2, rad.sin());
@@ -37,7 +37,7 @@ impl Matrix {
         m
     }
 
-    fn rotation_z(rad: f64) -> Matrix {
+    pub fn rotation_z(rad: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(0, 0, rad.cos());
         m.set(0, 1, -rad.sin());
@@ -46,7 +46,7 @@ impl Matrix {
         m
     }
 
-    fn shearing(x_to_y: f64, x_to_z: f64, y_to_x: f64, y_to_z: f64, z_to_x: f64, z_to_y: f64) -> Matrix {
+    pub fn shearing(x_to_y: f64, x_to_z: f64, y_to_x: f64, y_to_z: f64, z_to_x: f64, z_to_y: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(0, 1, x_to_y);
         m.set(0, 2, x_to_z);

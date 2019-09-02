@@ -1,8 +1,10 @@
+use std::f64::consts::*;
 use super::color::*;
 use super::canvas::*;
 use super::tuple::*;
 use super::ray::*;
 use super::sphere::*;
+use super::matrix::*;
 
 
 #[cfg(test)]
@@ -21,7 +23,8 @@ mod tests {
 
         let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
         let color = Color::new(1.0, 0.0, 0.0);
-        let shape = Sphere::new();
+        let mut shape = Sphere::new();
+        shape.set_transform(Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0));
         for y in 0..CANVAS_PIXELS {
             let world_y = half - pixel_size * (y as f64);
             for x in 0..CANVAS_PIXELS {
