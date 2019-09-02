@@ -64,7 +64,6 @@ impl ops::Index<usize> for Matrix {
 
 impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
-        
         self.size == other.size &&
         (0..self.size).all(|row| self[row] == other[row])
     }

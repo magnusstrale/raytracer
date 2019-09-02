@@ -1,5 +1,4 @@
 use core::ops;
-use std::iter;
 use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;
@@ -8,6 +7,13 @@ use super::tuple::Tuple;
 pub struct Intersection {
     pub t: f64,
     pub object: Sphere
+}
+
+impl PartialEq for Intersection {
+    fn eq(&self, other: &Self) -> bool {
+        self.t == other.t &&
+        self.object == other.object
+    }
 }
 
 impl Intersection {
@@ -21,7 +27,8 @@ impl Intersection {
 }
 
 pub struct Intersections {
-    inner: Vec<Intersection>
+    inner: Vec<Intersection>,
+    current_hit: Option<Intersection>
 }
 
 impl ops::Index<usize> for Intersections {
@@ -32,17 +39,37 @@ impl ops::Index<usize> for Intersections {
 }
 
 impl Intersections {
-    fn new(i1: Intersection, i2: Intersection) -> Intersections {
-        Intersections { inner: vec![i1, i2]}
+    pub fn new(i1: Intersection, i2: Intersection) -> Intersections {
+        let mut xs = Intersections { inner: vec![i1, i2], current_hit: None };
+        xs.calculate_hit(i1);
+        xs.calculate_hit(i2);
+        xs
     }
+
+    fn calculate_hit(&mut self, i: Intersection) {
+        if i.t < 0.0 { return };
+        match self.current_hit {
+            None => self.current_hit = Some(i),
+            Some(h) => if i.t < h.t { self.current_hit = Some(i) }
+        };
+    }
+
+    // fn re_sort(&mut self) {
+    //     self.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
+    // }
 
     fn add(&mut self, i: Intersection) -> &mut Intersections {
         &mut self.inner.push(i);
+        self.calculate_hit(i);
         self
     }
 
     fn len(&self) -> usize {
         self.inner.len()
+    }
+
+    pub fn hit(&self) -> Option<Intersection> {
+        self.current_hit
     }
 }
 
@@ -72,6 +99,23 @@ mod tests {
     }
 
     #[test]
+    fn aggregate_intersections_with_add() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(1.0, s);
+        let i2 = Intersection::new(2.0, s);
+        let i3 = Intersection::new(3.0, s);
+        let i4 = Intersection::new(4.0, s);
+        let mut xs = Intersections::new(i1, i2);
+        xs.add(i3).add(i4);
+
+        assert_eq!(4, xs.len());
+        assert_eq!(1.0, xs[0].t);
+        assert_eq!(2.0, xs[1].t);
+        assert_eq!(3.0, xs[2].t);
+        assert_eq!(4.0, xs[3].t);
+    }
+
+    #[test]
     fn intersect_sets_object_on_intersection() {
         let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
         let s = Sphere::new();
@@ -81,4 +125,52 @@ mod tests {
         assert_eq!(xs[0].object, s);
         assert_eq!(xs[1].object, s);
     }
+
+    #[test]
+    fn hit_all_intersections_positive_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(1.0, s);
+        let i2 = Intersection::new(2.0, s);
+        let xs = Intersections::new(i2, i1);
+        let i = xs.hit().unwrap();
+
+        assert_eq!(i, i1);
+    }
+
+    #[test]
+    fn hit_some_intersections_negative_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(-1.0, s);
+        let i2 = Intersection::new(1.0, s);
+        let xs = Intersections::new(i2, i1);
+        let i = xs.hit().unwrap();
+
+        assert_eq!(i, i2);
+    }
+
+    #[test]
+    fn hit_all_intersections_negative_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(-2.0, s);
+        let i2 = Intersection::new(-1.0, s);
+        let xs = Intersections::new(i2, i1);
+        let i = xs.hit();
+
+        assert_eq!(i, None);
+    }
+
+    #[test]
+    fn hit_lowest_non_negative_intersection() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(5.0, s);
+        let i2 = Intersection::new(7.0, s);
+        let i3 = Intersection::new(-3.0, s);
+        let i4 = Intersection::new(2.0, s);
+        let mut xs = Intersections::new(i1, i2);
+        xs.add(i3).add(i4);
+        let i = xs.hit().unwrap();
+
+        assert_eq!(i, i4);
+    }
+
 }
