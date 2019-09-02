@@ -11,7 +11,7 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Canvas {
+    pub fn new(width: usize, height: usize) -> Canvas {
         let black_row = vec![BLACK; width];
         Canvas { 
             width, 
@@ -24,7 +24,7 @@ impl Canvas {
         self.canvas[y][x]
     }
 
-    fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
+    pub fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
         self.canvas[y][x] = c;
     }
 
@@ -53,7 +53,7 @@ impl Canvas {
         bytes
     }
 
-    fn save(&self, file_name: &str) -> Result<()> {
+    pub fn save(&self, file_name: &str) -> Result<()> {
         let file = File::create(file_name)?;
         let ref mut w = std::io::BufWriter::new(file);
 

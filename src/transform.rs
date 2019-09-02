@@ -3,7 +3,7 @@ use super::tuple::Tuple;
 use std::f64::consts::*;
 
 impl Matrix {
-    fn translation(x: f64, y: f64, z: f64) -> Matrix {
+    pub fn translation(x: f64, y: f64, z: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(0, 3, x);
         m.set(1, 3, y);
@@ -11,7 +11,7 @@ impl Matrix {
         m
     }
 
-    fn scaling(x: f64, y: f64, z: f64) -> Matrix {
+    pub fn scaling(x: f64, y: f64, z: f64) -> Matrix {
         let mut m = Matrix::identity_matrix();
         m.set(0, 0, x);
         m.set(1, 1, y);

@@ -39,10 +39,11 @@ impl ops::Index<usize> for Intersections {
 }
 
 impl Intersections {
-    pub fn new(i1: Intersection, i2: Intersection) -> Intersections {
-        let mut xs = Intersections { inner: vec![i1, i2], current_hit: None };
-        xs.calculate_hit(i1);
-        xs.calculate_hit(i2);
+
+    pub fn new(range: Vec<Intersection>) -> Intersections {
+        let mut xs = Intersections { inner: range, current_hit: None };
+        xs.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
+        (0..xs.inner.len()).for_each(|i| xs.calculate_hit(xs.inner[i]));
         xs
     }
 
@@ -54,17 +55,7 @@ impl Intersections {
         };
     }
 
-    // fn re_sort(&mut self) {
-    //     self.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
-    // }
-
-    fn add(&mut self, i: Intersection) -> &mut Intersections {
-        &mut self.inner.push(i);
-        self.calculate_hit(i);
-        self
-    }
-
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.inner.len()
     }
 
@@ -91,7 +82,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(1.0, s);
         let i2 = Intersection::new(2.0, s);
-        let xs = Intersections::new(i1, i2);
+        let xs = Intersections::new(vec![i1, i2]);
 
         assert_eq!(2, xs.len());
         assert_eq!(1.0, xs[0].t);
@@ -105,8 +96,7 @@ mod tests {
         let i2 = Intersection::new(2.0, s);
         let i3 = Intersection::new(3.0, s);
         let i4 = Intersection::new(4.0, s);
-        let mut xs = Intersections::new(i1, i2);
-        xs.add(i3).add(i4);
+        let xs = Intersections::new(vec![i1, i2, i3, i4]);
 
         assert_eq!(4, xs.len());
         assert_eq!(1.0, xs[0].t);
@@ -131,7 +121,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(1.0, s);
         let i2 = Intersection::new(2.0, s);
-        let xs = Intersections::new(i2, i1);
+        let xs = Intersections::new(vec![i2, i1]);
         let i = xs.hit().unwrap();
 
         assert_eq!(i, i1);
@@ -142,7 +132,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(-1.0, s);
         let i2 = Intersection::new(1.0, s);
-        let xs = Intersections::new(i2, i1);
+        let xs = Intersections::new(vec![i2, i1]);
         let i = xs.hit().unwrap();
 
         assert_eq!(i, i2);
@@ -153,7 +143,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(-2.0, s);
         let i2 = Intersection::new(-1.0, s);
-        let xs = Intersections::new(i2, i1);
+        let xs = Intersections::new(vec![i2, i1]);
         let i = xs.hit();
 
         assert_eq!(i, None);
@@ -166,11 +156,9 @@ mod tests {
         let i2 = Intersection::new(7.0, s);
         let i3 = Intersection::new(-3.0, s);
         let i4 = Intersection::new(2.0, s);
-        let mut xs = Intersections::new(i1, i2);
-        xs.add(i3).add(i4);
+        let xs = Intersections::new(vec![i1, i2, i3, i4]);
         let i = xs.hit().unwrap();
 
         assert_eq!(i, i4);
     }
-
 }

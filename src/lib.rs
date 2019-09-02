@@ -6,3 +6,4 @@ pub mod transform;
 pub mod ray;
 pub mod sphere;
 pub mod intersection;
+pub mod sample;
