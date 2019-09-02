@@ -119,13 +119,4 @@ mod tests {
         assert_eq!(255u8, rgb_bytes[(4 + 2 * WIDTH) * BYTES_PER_PIXEL + 2]);     // the 1.0 b value should be 255
     }
 
-    #[test]
-    fn canvas_to_file()
-    {
-        let mut c = Canvas::new(100, 100);
-        c.write_pixel(1, 1, RED);
-        c.write_pixel(99, 0, GREEN);
-        c.write_pixel(99, 99, WHITE);
-        c.save("black.png").expect("Failed to save file");
-    }
 }

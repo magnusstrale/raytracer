@@ -7,9 +7,19 @@ use super::sphere::*;
 use super::matrix::*;
 
 
-#[cfg(test)]
+#[cfg(all(test, pics))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn canvas_to_file()
+    {
+        let mut c = Canvas::new(100, 100);
+        c.write_pixel(1, 1, RED);
+        c.write_pixel(99, 0, GREEN);
+        c.write_pixel(99, 99, WHITE);
+        c.save("black.png").expect("Failed to save file");
+    }
 
     #[test]
     fn circle_shadow()
