@@ -3,6 +3,7 @@ use super::ray::Ray;
 use super::intersection::{Intersection, Intersections};
 use super::matrix::Matrix;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::f64::consts::*;
 
 static SPHERE_COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -43,6 +44,15 @@ impl Sphere {
     pub fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
         self.inverse_transform = transform.inverse().unwrap();  // Will blow up if transformation matrix is not invertible, which is a good thing
+    }
+
+    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+        if !world_point.is_point() { panic!("Tuple must be a point"); }
+        let object_point = self.inverse_transform * world_point;
+        let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
+        let mut world_normal = self.inverse_transform.transpose() * object_normal;
+        world_normal.w = 0.0;   // a bit of a hack...
+        world_normal.normalize()
     }
 }
 
@@ -144,5 +154,67 @@ mod tests {
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 0);
+    }
+
+    #[test]
+    fn normal_on_sphere_on_x_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(Tuple::point(1.0, 0.0, 0.0));
+
+        assert_eq!(n, Tuple::vector(1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn normal_on_sphere_on_y_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(Tuple::point(0.0, 1.0, 0.0));
+
+        assert_eq!(n, Tuple::vector(0.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn normal_on_sphere_on_z_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(Tuple::point(0.0, 0.0, 1.0));
+
+        assert_eq!(n, Tuple::vector(0.0, 0.0, 1.0));
+    }
+
+    #[test]
+    fn normal_on_sphere_on_non_axial_point() {
+        let s = Sphere::new();
+        let pv = 3.0f64.sqrt() / 3.0;
+        let n = s.normal_at(Tuple::point(pv, pv, pv));
+
+        assert_eq!(n, Tuple::vector(pv, pv, pv));
+    }
+
+    #[test]
+    fn normal_is_normalized_vector() {
+        let s = Sphere::new();
+        let pv = 3.0f64.sqrt() / 3.0;
+        let n = s.normal_at(Tuple::point(pv, pv, pv));
+
+        assert_eq!(n, n.normalize());
+    }
+
+    #[test]
+    fn computing_normal_on_translated_sphere() {
+        let mut s = Sphere::new();
+        s.set_transform(Matrix::translation(0.0, 1.0, 0.0));
+        let n = s.normal_at(Tuple::point(0.0, 1.70711, -0.70711));
+
+        assert_eq!(n, Tuple::vector(0.0, 0.70711, -0.70711));
+    }
+
+    #[test]
+    fn computing_normal_on_transformed_sphere() {
+        let mut s = Sphere::new();
+        let m = Matrix::scaling(1.0, 0.5, 1.0) * Matrix::rotation_z(PI / 5.0);
+        s.set_transform(m);
+        let pv = 2.0f64.sqrt() / 2.0;
+        let n = s.normal_at(Tuple::point(0.0, pv, -pv));
+
+        assert_eq!(n, Tuple::vector(0.0, 0.97014, -0.24254));
     }
 }

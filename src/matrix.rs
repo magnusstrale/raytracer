@@ -155,7 +155,7 @@ impl Matrix {
         Tuple::new(r[0], r[1], r[2], r[3])
     }
 
-    fn transpose(&self) -> Matrix {
+    pub fn transpose(&self) -> Matrix {
         let mut m = self.empty();
         let size = self.size;
         for row in 0..size {
