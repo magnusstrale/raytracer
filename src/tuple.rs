@@ -127,6 +127,10 @@ impl Tuple {
             self.z * t.x - self.x * t.z,
             self.x * t.y - self.y * t.x)
     }
+
+    pub fn reflect(&self, normal: Tuple) -> Tuple {
+        *self - normal * 2.0 * self.dot(&normal)
+    }
 }
 
 #[cfg(test)]
@@ -341,5 +345,24 @@ mod tests {
         assert_eq!(Tuple::vector(-1.0, 2.0, -1.0), actual_ab);
         let actual_ba = b.cross(&a);
         assert_eq!(Tuple::vector(1.0, -2.0, 1.0), actual_ba);
+    }
+
+    #[test]
+    fn reflecting_vector_approaching_45_degrees() {
+        let v = Tuple::vector(1.0, -1.0, 0.0);
+        let n = Tuple::vector(0.0, 1.0, 0.0);
+        let r = v.reflect(n);
+
+        assert_eq!(r, Tuple::vector(1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn reflecting_vector_off_slanted_surface() {
+        let v = Tuple::vector(0.0, -1.0, 0.0);
+        let pv = 2.0f64.sqrt() / 2.0;
+        let n = Tuple::vector(pv, pv, 0.0);
+        let r = v.reflect(n);
+
+        assert_eq!(r, Tuple::vector(1.0, 0.0, 0.0));
     }
 }
