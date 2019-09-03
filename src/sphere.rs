@@ -3,6 +3,7 @@ use super::ray::Ray;
 use super::intersection::{Intersection, Intersections};
 use super::matrix::Matrix;
 use super::material::Material;
+use super::shape::Shape;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::f64::consts::*;
 
@@ -22,13 +23,8 @@ impl PartialEq for Sphere {
     }
 }
 
-impl Sphere {
-    pub fn new() -> Self {
-        let im = Matrix::identity_matrix();
-        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::default() }
-    }
-
-    pub fn intersect(&self, ray: Ray) -> Intersections {
+impl Shape for Sphere {
+    fn intersect(&self, ray: Ray) -> Intersections {
         let ray2 = ray.transform(self.inverse_transform);
         let sphere_to_ray = ray2.origin - ORIGO;
         let a = ray2.direction.dot(&ray2.direction);
@@ -43,22 +39,29 @@ impl Sphere {
         Intersections::new(vec![i2, i1])
     }
 
-    pub fn set_transform(&mut self, transform: Matrix) {
-        self.transform = transform;
-        self.inverse_transform = transform.inverse().unwrap();  // Will blow up if transformation matrix is not invertible, which is a good thing
-    }
-
-    pub fn set_material(&mut self, material: Material) {
+    fn set_material(&mut self, material: Material) {
         self.material = material;
     }
-
-    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+    
+    fn normal_at(&self, world_point: Tuple) -> Tuple {
         if !world_point.is_point() { panic!("Tuple must be a point"); }
         let object_point = self.inverse_transform * world_point;
         let object_normal = object_point - ORIGO;
         let mut world_normal = self.inverse_transform.transpose() * object_normal;
         world_normal.w = 0.0;   // a bit of a hack...
         world_normal.normalize()
+    }
+
+}
+impl Sphere {
+    pub fn new() -> Self {
+        let im = Matrix::identity_matrix();
+        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::default() }
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix) {
+        self.transform = transform;
+        self.inverse_transform = transform.inverse().unwrap();  // Will blow up if transformation matrix is not invertible, which is a good thing
     }
 }
 

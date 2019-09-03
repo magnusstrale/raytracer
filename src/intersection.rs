@@ -1,4 +1,5 @@
 use core::ops;
+use super::shape::Shape;
 use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;

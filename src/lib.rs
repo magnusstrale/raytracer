@@ -4,6 +4,7 @@ pub mod canvas;
 pub mod matrix;
 pub mod transform;
 pub mod ray;
+pub mod shape;
 pub mod sphere;
 pub mod intersection;
 pub mod light;

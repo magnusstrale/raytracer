@@ -3,6 +3,7 @@ use super::color::*;
 use super::canvas::*;
 use super::tuple::*;
 use super::ray::*;
+use super::shape::*;
 use super::sphere::*;
 use super::matrix::*;
 use super::light::*;
