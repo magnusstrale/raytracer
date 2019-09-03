@@ -1,7 +1,8 @@
-use super::tuple::Tuple;
+use super::tuple::{Tuple, ORIGO};
 use super::ray::Ray;
 use super::intersection::{Intersection, Intersections};
 use super::matrix::Matrix;
+use super::material::Material;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::f64::consts::*;
 
@@ -11,7 +12,8 @@ static SPHERE_COUNT: AtomicUsize = AtomicUsize::new(0);
 pub struct Sphere {
     index: usize,
     pub transform: Matrix,
-    inverse_transform: Matrix
+    inverse_transform: Matrix,
+    material: Material
 }
 
 impl PartialEq for Sphere {
@@ -23,12 +25,12 @@ impl PartialEq for Sphere {
 impl Sphere {
     pub fn new() -> Self {
         let im = Matrix::identity_matrix();
-        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im }
+        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::new_default() }
     }
 
     pub fn intersect(&self, ray: Ray) -> Intersections {
         let ray2 = ray.transform(self.inverse_transform);
-        let sphere_to_ray = ray2.origin - Tuple::point(0.0, 0.0, 0.0);
+        let sphere_to_ray = ray2.origin - ORIGO;
         let a = ray2.direction.dot(&ray2.direction);
         let b = 2.0 * ray2.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
@@ -46,10 +48,14 @@ impl Sphere {
         self.inverse_transform = transform.inverse().unwrap();  // Will blow up if transformation matrix is not invertible, which is a good thing
     }
 
+    pub fn set_material(&mut self, material: Material) {
+        self.material = material;
+    }
+
     pub fn normal_at(&self, world_point: Tuple) -> Tuple {
         if !world_point.is_point() { panic!("Tuple must be a point"); }
         let object_point = self.inverse_transform * world_point;
-        let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
+        let object_normal = object_point - ORIGO;
         let mut world_normal = self.inverse_transform.transpose() * object_normal;
         world_normal.w = 0.0;   // a bit of a hack...
         world_normal.normalize()
@@ -216,5 +222,24 @@ mod tests {
         let n = s.normal_at(Tuple::point(0.0, pv, -pv));
 
         assert_eq!(n, Tuple::vector(0.0, 0.97014, -0.24254));
+    }
+
+    #[test]
+    fn sphere_has_default_material()
+    {
+        let s = Sphere::new();
+
+        assert_eq!(s.material, Material::new_default())
+    }
+
+    #[test]
+    fn sphere_can_be_assigned_material()
+    {
+        let mut s = Sphere::new();
+        let mut m = Material::new_default();
+        m.ambient = 1.0;
+        s.set_material(m);
+        
+        assert_eq!(s.material, m);
     }
 }
