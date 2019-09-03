@@ -170,7 +170,7 @@ impl Matrix {
         let size = self.size;
         match size {
             2 => self[0][0] * self[1][1] - self[0][1] * self[1][0],
-            3...4 => {
+            3..=4 => {
                 let r = &self[0].inner;
                 let mut col = 0;
                 r.iter().map(|c| { let v = c * self.cofactor(0, col); col += 1; v } ).sum()

@@ -9,7 +9,7 @@ use super::matrix::*;
 use super::light::*;
 
 
-#[cfg(test)]
+#[cfg(pics)]
 mod tests {
     use super::*;
 
@@ -35,8 +35,8 @@ mod tests {
 
         let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
         let color = Color::new(1.0, 0.0, 0.0);
-        let mut shape = Sphere::new();
-        shape.set_transform(Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0));
+        let tr = Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0);
+        let shape = Sphere::new(None, Some(tr));
         for y in 0..CANVAS_PIXELS {
             let world_y = half - pixel_size * (y as f64);
             for x in 0..CANVAS_PIXELS {
@@ -45,7 +45,7 @@ mod tests {
                 let r = Ray::new(ray_origin, (position - ray_origin).normalize());
                 let xs = shape.intersect(r);
                 match xs.hit() {
-                    Some(t) => canvas.write_pixel(x, y, color),
+                    Some(_i) => canvas.write_pixel(x, y, color),
                     None => ()
                 }
             }
@@ -64,13 +64,14 @@ mod tests {
         let half = WALL_SIZE as f64 / 2.0;
 
         let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
-        let mut shape = Sphere::new();
-        shape.material.color = Color::new(1.0, 0.2, 1.0);
+        let m = Material::default();
+        m.color = Color::new(1.0, 0.2, 1.0);
+        let tr = Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0);
+        let shape = Sphere::new(Some(m), Some(tr));
         let light_position = Tuple::point(-10.0, 10.0, -10.0);
         let light_color = WHITE;
         let light = PointLight::new(light_position, light_color);
 
-        shape.set_transform(Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0));
         for y in 0..CANVAS_PIXELS {
             let world_y = half - pixel_size * (y as f64);
             for x in 0..CANVAS_PIXELS {

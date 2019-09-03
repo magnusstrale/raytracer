@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn intersection_encapsulates_t_and_object() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i = Intersection::new(3.5, s);
 
         assert_eq!(i.t, 3.5);
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn aggregate_intersections() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(1.0, s);
         let i2 = Intersection::new(2.0, s);
         let xs = Intersections::new(vec![i1, i2]);
@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn aggregate_intersections_with_add() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(1.0, s);
         let i2 = Intersection::new(2.0, s);
         let i3 = Intersection::new(3.0, s);
@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn intersect_sets_object_on_intersection() {
         let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let s = Sphere::new();
+        let s = Sphere::default();
         let xs =s.intersect(r);
 
         assert_eq!(2, xs.len());
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn hit_all_intersections_positive_t() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(1.0, s);
         let i2 = Intersection::new(2.0, s);
         let xs = Intersections::new(vec![i2, i1]);
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn hit_some_intersections_negative_t() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(-1.0, s);
         let i2 = Intersection::new(1.0, s);
         let xs = Intersections::new(vec![i2, i1]);
@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn hit_all_intersections_negative_t() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(-2.0, s);
         let i2 = Intersection::new(-1.0, s);
         let xs = Intersections::new(vec![i2, i1]);
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn hit_lowest_non_negative_intersection() {
-        let s = Sphere::new();
+        let s = Sphere::default();
         let i1 = Intersection::new(5.0, s);
         let i2 = Intersection::new(7.0, s);
         let i3 = Intersection::new(-3.0, s);
@@ -160,14 +160,14 @@ mod tests {
 
     #[test]
     fn extend_intersections_gets_union() {
-        let s1 = Sphere::new();
+        let s1 = Sphere::default();
         let i1 = Intersection::new(5.0, s1);
         let i2 = Intersection::new(7.0, s1);
         let i3 = Intersection::new(-3.0, s1);
         let i4 = Intersection::new(2.0, s1);
         let mut xs1 = Intersections::new(vec![i1, i2, i3, i4]);
 
-        let s2 = Sphere::new();
+        let s2 = Sphere::default();
         let i5 = Intersection::new(-1.0, s2);
         let i6 = Intersection::new(1.0, s2);
         let i7 = Intersection::new(2.0, s2);
