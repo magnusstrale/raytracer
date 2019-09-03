@@ -11,9 +11,9 @@ static SPHERE_COUNT: AtomicUsize = AtomicUsize::new(0);
 #[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     index: usize,
-    pub transform: Matrix,
     inverse_transform: Matrix,
-    material: Material
+    pub transform: Matrix,
+    pub material: Material
 }
 
 impl PartialEq for Sphere {
