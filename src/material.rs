@@ -16,19 +16,15 @@ pub const DEFAULT_DIFFUSE: f64 = 0.9;
 pub const DEFAULT_SPECULAR: f64 = 0.9;
 pub const DEFAULT_SHININESS: f64 = 200.0;
 
-impl Material {
-    pub fn new(color: Option<Color>, ambient: Option<f64>, diffuse: Option<f64>, specular: Option<f64>, shininess: Option<f64>) -> Material {
-        Material { 
-            color: color.unwrap_or(WHITE), 
-            ambient: ambient.unwrap_or(DEFAULT_AMBIENT), 
-            diffuse: diffuse.unwrap_or(DEFAULT_DIFFUSE), 
-            specular: specular.unwrap_or(DEFAULT_SPECULAR), 
-            shininess: shininess.unwrap_or(DEFAULT_SHININESS)
-        }
+impl Default for Material {
+    fn default() -> Self {
+        Material::new(WHITE, DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS)
     }
+}
 
-    pub fn new_default() -> Material {
-        Material::new(None, None, None, None, None)
+impl Material {
+    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Material {
+        Material { color, ambient, diffuse, specular, shininess }
     }
 
     pub fn lighting(&self, light: &PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) -> Color {
@@ -61,7 +57,7 @@ mod tests {
 
     #[test]
     fn default_material() {
-        let m = Material::new_default();
+        let m = Material::default();
         assert_eq!(m.ambient, 0.1);
         assert_eq!(m.diffuse, 0.9);
         assert_eq!(m.specular, 0.9);
@@ -70,7 +66,7 @@ mod tests {
 
     #[test]
     fn lighing_eye_between_light_and_surface() {
-        let m = Material::new_default();
+        let m = Material::default();
         let position = ORIGO;
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
@@ -84,7 +80,7 @@ mod tests {
 
     #[test]
     fn lighing_eye_between_light_and_surface_eye_offset_45_degrees() {
-        let m = Material::new_default();
+        let m = Material::default();
         let position = ORIGO;
 
         let pv = 2.0f64.sqrt() / 2.0;
@@ -99,7 +95,7 @@ mod tests {
 
     #[test]
     fn lighing_eye_opposite_surface_light_offset_45_degrees() {
-        let m = Material::new_default();
+        let m = Material::default();
         let position = ORIGO;
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0 );
@@ -113,7 +109,7 @@ mod tests {
 
     #[test]
     fn lighing_eye_in_path_of_reflection_vector() {
-        let m = Material::new_default();
+        let m = Material::default();
         let position = ORIGO;
 
         let pv = -2.0f64.sqrt() / 2.0;
@@ -128,7 +124,7 @@ mod tests {
 
     #[test]
     fn lighing_light_behind_surface() {
-        let m = Material::new_default();
+        let m = Material::default();
         let position = ORIGO;
 
         let eyev = Tuple::vector(0.0, 0.0, -1.0 );

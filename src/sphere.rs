@@ -25,7 +25,7 @@ impl PartialEq for Sphere {
 impl Sphere {
     pub fn new() -> Self {
         let im = Matrix::identity_matrix();
-        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::new_default() }
+        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::default() }
     }
 
     pub fn intersect(&self, ray: Ray) -> Intersections {
@@ -229,14 +229,14 @@ mod tests {
     {
         let s = Sphere::new();
 
-        assert_eq!(s.material, Material::new_default())
+        assert_eq!(s.material, Material::default())
     }
 
     #[test]
     fn sphere_can_be_assigned_material()
     {
         let mut s = Sphere::new();
-        let mut m = Material::new_default();
+        let mut m = Material::default();
         m.ambient = 1.0;
         s.set_material(m);
         
