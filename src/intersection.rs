@@ -3,17 +3,10 @@ use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Intersection {
     pub t: f64,
     pub object: Sphere
-}
-
-impl PartialEq for Intersection {
-    fn eq(&self, other: &Self) -> bool {
-        self.t == other.t &&
-        self.object == other.object
-    }
 }
 
 impl Intersection {
