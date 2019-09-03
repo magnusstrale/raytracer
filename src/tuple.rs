@@ -8,6 +8,8 @@ pub struct Tuple {
     pub w: f64
 }
 
+pub const ORIGO:Tuple = Tuple { x: 0.0, y: 0.0, z: 0.0, w: 1.0 };
+
 impl PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
         const EPS: f64 = 0.00001;
@@ -161,6 +163,11 @@ mod tests {
         assert!(v.is_vector());
     }
 
+    #[test]
+    fn origo_is_point() {
+        assert!(ORIGO.is_point());
+    }
+    
     #[test]
     fn point_creates_tuple_with_w_1() {
         let p = Tuple::point(4.0, -4.0, 3.0);
