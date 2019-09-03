@@ -1,6 +1,6 @@
 use super::color::{Color, BLACK, WHITE};
 use super::tuple::{Tuple, ORIGO};
-use super::pointlight::PointLight;
+use super::light::PointLight;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Material {

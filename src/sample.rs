@@ -5,7 +5,7 @@ use super::tuple::*;
 use super::ray::*;
 use super::sphere::*;
 use super::matrix::*;
-use super::pointlight::*;
+use super::light::*;
 
 
 #[cfg(test)]
