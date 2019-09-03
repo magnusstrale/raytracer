@@ -1,13 +1,13 @@
 use super::color::{Color, WHITE};
 use super::tuple::Tuple;
 
-struct PointLight {
-    position: Tuple,
-    intensity: Color
+pub struct PointLight {
+    pub position: Tuple,
+    pub intensity: Color
 }
 
 impl PointLight {
-    fn new(position: Tuple, intensity: Color) -> PointLight {
+    pub fn new(position: Tuple, intensity: Color) -> PointLight {
         PointLight { position, intensity }
     }
 }
