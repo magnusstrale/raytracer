@@ -1,6 +1,7 @@
 use super::color::{Color, WHITE};
 use super::tuple::Tuple;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct PointLight {
     pub position: Tuple,
     pub intensity: Color

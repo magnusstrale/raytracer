@@ -12,11 +12,7 @@ pub struct Intersection {
 
 impl Intersection {
     pub fn new(t: f64, object: Sphere) -> Self {
-        Intersection {t, object}
-    }
-
-    fn intersections(i1: Intersection, i2: Intersection) -> Vec<Intersection> {
-        vec![i1, i2]
+        Intersection { t, object }
     }
 }
 
@@ -39,6 +35,12 @@ impl Intersections {
         xs.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
         (0..xs.inner.len()).for_each(|i| xs.calculate_hit(xs.inner[i]));
         xs
+    }
+
+    pub fn extend(&mut self, range: Intersections) {
+        self.inner.extend(range.inner);
+        if range.current_hit != None { self.calculate_hit(range.current_hit.unwrap()); }
+        self.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
     }
 
     fn calculate_hit(&mut self, i: Intersection) {
@@ -154,5 +156,26 @@ mod tests {
         let i = xs.hit().unwrap();
 
         assert_eq!(i, i4);
+    }
+
+    #[test]
+    fn extend_intersections_gets_union() {
+        let s1 = Sphere::new();
+        let i1 = Intersection::new(5.0, s1);
+        let i2 = Intersection::new(7.0, s1);
+        let i3 = Intersection::new(-3.0, s1);
+        let i4 = Intersection::new(2.0, s1);
+        let mut xs1 = Intersections::new(vec![i1, i2, i3, i4]);
+
+        let s2 = Sphere::new();
+        let i5 = Intersection::new(-1.0, s2);
+        let i6 = Intersection::new(1.0, s2);
+        let i7 = Intersection::new(2.0, s2);
+        let xs2 = Intersections::new(vec![i5, i6, i7]);
+
+        xs1.extend(xs2);    // xs2 is moved
+
+        assert_eq!(xs1.len(), 7);
+        assert_eq!(xs1.hit().unwrap(), i6);
     }
 }
