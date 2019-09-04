@@ -3,6 +3,7 @@ use super::shape::Shape;
 use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;
+use super::precomputed_data::PrecomputedData;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Intersection {
@@ -13,6 +14,25 @@ pub struct Intersection {
 impl Intersection {
     pub fn new(t: f64, object: Sphere) -> Self {
         Intersection { t, object }
+    }
+
+    pub fn prepare_computations(&self, ray: Ray) -> PrecomputedData {
+        let point = ray.position(self.t);
+        let eyev = -ray.direction;
+        let mut normalv = self.object.normal_at(point);
+        let mut inside = false;
+        if normalv.dot(&eyev) < 0.0 {
+            normalv = -normalv;
+            inside = true;
+        }
+        PrecomputedData::new(
+            self.t,
+            self.object,
+            point,
+            eyev,
+            normalv,
+            inside
+        )
     }
 }
 
@@ -177,5 +197,40 @@ mod tests {
 
         assert_eq!(xs1.len(), 7);
         assert_eq!(xs1.hit().unwrap(), i6);
+    }
+
+    #[test]
+    fn precompute_state_of_intersection() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(4.0, shape);
+        let comps = i.prepare_computations(r);
+
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.point, Tuple::point(0.0, 0.0, -1.0));
+        assert_eq!(comps.eyev, Tuple::vector(0.0, 0.0, -1.0));
+    }
+
+    #[test]
+    fn hit_when_intersection_on_outside() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(4.0, shape);
+        let comps = i.prepare_computations(r);
+
+        assert!(!comps.inside);
+    }
+
+    #[test]
+    fn hit_when_intersection_on_inside() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0));
+        let shape = Sphere::default();
+        let i = Intersection::new(1.0, shape);
+        let comps = i.prepare_computations(r);
+
+        assert_eq!(comps.point, Tuple::point(0.0, 0.0, 1.0));
+        assert_eq!(comps.eyev, Tuple::vector(0.0, 0.0, -1.0));
+        assert!(comps.inside);
+        assert_eq!(comps.normalv, Tuple::vector(0.0, 0.0, -1.0));
     }
 }

@@ -10,4 +10,5 @@ pub mod intersection;
 pub mod light;
 pub mod material;
 pub mod world;
+pub mod precomputed_data;
 pub mod sample;
