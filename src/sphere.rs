@@ -1,7 +1,7 @@
 use super::tuple::{Tuple, ORIGO};
 use super::ray::Ray;
 use super::intersection::{Intersection, Intersections};
-use super::matrix::Matrix;
+use super::matrix::{Matrix, IDENTITY_MATRIX};
 use super::material::Material;
 use super::shape::Shape;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -59,10 +59,9 @@ impl Sphere {
     pub fn new(material: Option<Material>, transform: Option<Matrix>) -> Self {
         Sphere { 
             index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), 
-            transform: transform.unwrap_or(Matrix::identity_matrix()), 
+            transform: transform.unwrap_or(IDENTITY_MATRIX), 
             inverse_transform: match transform {
-                None => Matrix::identity_matrix()
-                ,
+                None => IDENTITY_MATRIX,
                 Some(t) => t.inverse().unwrap()
             },
             material: material.unwrap_or(Material::default()) 

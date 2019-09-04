@@ -32,21 +32,23 @@ impl Material {
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * self.ambient;
         let light_dot_normal = lightv.dot(&normalv);
-        let (diffuse, specular) = if light_dot_normal < 0.0 {
-            (BLACK, BLACK)
-        }
-        else {
-            let reflectv = (-lightv).reflect(normalv);
-            let reflect_dot_eye = reflectv.dot(&eyev);
-            (effective_color * self.diffuse * light_dot_normal, 
-            if reflect_dot_eye <= 0.0 { 
-                BLACK
+        let (diffuse, specular) = 
+            if light_dot_normal < 0.0 {
+                (BLACK, BLACK)
             }
             else {
-                let factor = reflect_dot_eye.powf(self.shininess);
-                light.intensity * self.specular * factor
-            })
-        };
+                let reflectv = (-lightv).reflect(normalv);
+                let reflect_dot_eye = reflectv.dot(&eyev);
+                (effective_color * self.diffuse * light_dot_normal, 
+                    if reflect_dot_eye <= 0.0 { 
+                        BLACK
+                    }
+                    else {
+                        let factor = reflect_dot_eye.powf(self.shininess);
+                        light.intensity * self.specular * factor
+                    }
+                )
+            };
         ambient + diffuse + specular
     }
 }
@@ -68,11 +70,9 @@ mod tests {
     fn lighing_eye_between_light_and_surface() {
         let m = Material::default();
         let position = ORIGO;
-
         let eyev = Tuple::vector(0.0, 0.0, -1.0);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), WHITE);
-
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(1.9, 1.9, 1.9));
@@ -82,12 +82,10 @@ mod tests {
     fn lighing_eye_between_light_and_surface_eye_offset_45_degrees() {
         let m = Material::default();
         let position = ORIGO;
-
         let pv = 2.0f64.sqrt() / 2.0;
         let eyev = Tuple::vector(0.0, pv, -pv);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), WHITE);
-
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(1.0, 1.0, 1.0));
@@ -97,11 +95,9 @@ mod tests {
     fn lighing_eye_opposite_surface_light_offset_45_degrees() {
         let m = Material::default();
         let position = ORIGO;
-
         let eyev = Tuple::vector(0.0, 0.0, -1.0 );
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), WHITE);
-
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(0.7364, 0.7364, 0.7364));
@@ -111,12 +107,10 @@ mod tests {
     fn lighing_eye_in_path_of_reflection_vector() {
         let m = Material::default();
         let position = ORIGO;
-
         let pv = -2.0f64.sqrt() / 2.0;
         let eyev = Tuple::vector(0.0, pv, pv);
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), WHITE);
-
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(1.6364, 1.6364, 1.6364));
@@ -126,11 +120,9 @@ mod tests {
     fn lighing_light_behind_surface() {
         let m = Material::default();
         let position = ORIGO;
-
         let eyev = Tuple::vector(0.0, 0.0, -1.0 );
         let normalv = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, 10.0), WHITE);
-
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));

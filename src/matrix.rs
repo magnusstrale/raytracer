@@ -28,6 +28,14 @@ pub struct Matrix {
     pub size: usize
 }
 
+pub const IDENTITY_MATRIX: Matrix = Matrix { 
+            inner: [
+                Row { inner: [1.0, 0.0, 0.0, 0.0], size: 4 }, 
+                Row { inner: [0.0, 1.0, 0.0, 0.0], size: 4 },
+                Row { inner: [0.0, 0.0, 1.0, 0.0], size: 4 },
+                Row { inner: [0.0, 0.0, 0.0, 1.0], size: 4 } ], 
+            size: 4 };
+
 impl ops::Mul<Matrix> for Matrix {
     type Output = Matrix;
     fn mul(self, rhs: Matrix) -> Matrix {
