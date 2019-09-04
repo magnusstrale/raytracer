@@ -1,6 +1,7 @@
 use super::tuple::Tuple;
 use super::sphere::Sphere;
 
+#[derive(Debug)]
 pub struct PrecomputedData {
     pub t: f64,
     pub object: Sphere,
