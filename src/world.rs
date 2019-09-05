@@ -107,8 +107,8 @@ mod tests {
     fn shading_intersection() {
         let w = World::default_world();
         let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let shape = w.objects[0];
-        let i = Intersection::new(4.0, shape);
+        let shape = &w.objects[0];
+        let i = Intersection::new(4.0, shape.clone());
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -120,8 +120,8 @@ mod tests {
         let light = PointLight::new(Tuple::point(0.0, 0.25, 0.0), WHITE);
         let w = World::new(light, World::default_objects());
         let r = Ray::new(ORIGO, Tuple::vector(0.0, 0.0, 1.0));
-        let shape = w.objects[1];
-        let i = Intersection::new(0.5, shape);
+        let shape = &w.objects[1];
+        let i = Intersection::new(0.5, shape.clone());
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -149,17 +149,18 @@ mod tests {
     #[test]
     fn color_with_intersection_behind_ray() {
         let mut w = World::default_world();
-        let mut outer = w.objects[0];
-        outer.material.ambient = 1.0;
-        w.objects[0] = outer;
+        let color = 
+        {
+            let mut outer = &mut w.objects[0];
+            outer.material.ambient = 1.0;
 
-        let mut inner = w.objects[1];
-        inner.material.ambient = 1.0;
-        w.objects[1] = inner;
-
+            let mut inner = &mut w.objects[1];
+            inner.material.ambient = 1.0;
+            inner.material.color
+        };
         let r = Ray::new(Tuple::point(0.0, 0.0, 0.75), Tuple::vector(0.0, 0.0, -1.0));
         let c = w.color_at(r);
 
-        assert_eq!(c, inner.material.color);
+        assert_eq!(c, color);
     }
 }

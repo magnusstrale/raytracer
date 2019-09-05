@@ -9,7 +9,7 @@ use std::f64::consts::*;
 
 static SPHERE_COUNT: AtomicUsize = AtomicUsize::new(0);
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     index: usize,
     inverse_transform: Matrix,
@@ -34,8 +34,8 @@ impl Shape for Sphere {
 
         if discriminant < 0.0 { return Intersections::new(vec![]) }
 
-        let i1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
-        let i2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
+        let i1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self.clone());
+        let i2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self.clone());
         Intersections::new(vec![i2, i1])
     }
     

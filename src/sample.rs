@@ -7,6 +7,7 @@ use super::shape::*;
 use super::sphere::*;
 use super::matrix::*;
 use super::light::*;
+use super::material::*;
 
 
 #[cfg(pics)]
@@ -64,7 +65,7 @@ mod tests {
         let half = WALL_SIZE as f64 / 2.0;
 
         let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
-        let m = Material::default();
+        let mut m = Material::default();
         m.color = Color::new(1.0, 0.2, 1.0);
         let tr = Matrix::shearing(1.0, 0.0, 0.5, 0.0, 0.0, 0.0) * Matrix::scaling(1.0, 0.5, 1.0);
         let shape = Sphere::new(Some(m), Some(tr));
