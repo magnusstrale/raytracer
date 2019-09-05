@@ -12,10 +12,9 @@ pub const ORIGO:Tuple = Tuple { x: 0.0, y: 0.0, z: 0.0, w: 1.0 };
 
 impl PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
-        const EPS: f64 = 0.00001;
-        (self.x - other.x).abs() < EPS &&
-        (self.y - other.y).abs() < EPS &&
-        (self.z - other.z).abs() < EPS &&
+        super::approx_eq(self.x, other.x) &&
+        super::approx_eq(self.y, other.y) &&
+        super::approx_eq(self.z, other.z) &&
         self.w == other.w
     }
 }

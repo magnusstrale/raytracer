@@ -17,8 +17,7 @@ impl ops::Index<usize> for Row {
 
 impl PartialEq for Row {
     fn eq(&self, other: &Self) -> bool {
-        const EPS: f64 = 0.00001;
-        (0..self.size).all(|col| (self[col] - other[col]).abs() < EPS)
+        (0..self.size).all(|col| super::approx_eq(self[col], other[col]))
     }
 }
 

@@ -16,10 +16,9 @@ pub const BLUE: Color = Color { r: 0.0, g: 0.0, b: 1.0 };
 
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
-        const EPS: f64 = 0.00001;
-        (self.r - other.r).abs() < EPS &&
-        (self.g - other.g).abs() < EPS &&
-        (self.b - other.b).abs() < EPS
+        super::approx_eq(self.r, other.r) &&
+        super::approx_eq(self.g, other.g) &&
+        super::approx_eq(self.b, other.b)
     }
 }
 
