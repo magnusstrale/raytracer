@@ -20,7 +20,7 @@ mod tests {
     #[test]
     fn point_light_has_position_and_intensity() {
         let intensity = WHITE;
-        let position = Tuple::point(0.0, 0.0, 0.0);
+        let position = Tuple::point(0., 0., 0.);
         let light = PointLight::new(position, intensity);
 
         assert_eq!(light.position, position);

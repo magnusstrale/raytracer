@@ -8,7 +8,7 @@ use super::matrix::{Matrix, IDENTITY_MATRIX};
 use super::world::World;
 
 
-struct Camera {
+pub struct Camera {
     pub hsize: usize,
     pub vsize: usize,
     pub field_of_view: f64,

@@ -34,7 +34,7 @@ impl Canvas {
         } else if color_component >= 1.0 {
             255u8
         } else {
-            (color_component * 256.0) as u8
+            (color_component * 256.) as u8
         }
     }
 
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn writing_pixel_to_canvas() {
         let mut c = Canvas::new(10, 20);
-        let red = Color::new(1.0, 0.0, 0.0);
+        let red = Color::new(1., 0., 0.);
 
         c.write_pixel(2, 3, red);
 
@@ -103,9 +103,9 @@ mod tests {
         const BYTES_PER_PIXEL: usize = 3;
 
         let mut c = Canvas::new(WIDTH, HEIGHT);
-        let c1 = Color::new(1.5, 0.0, 0.0);
-        let c2 = Color::new(0.0, 0.5, 0.0);
-        let c3 = Color::new(-0.5, 0.0, 1.0);
+        let c1 = Color::new(1.5, 0., 0.);
+        let c2 = Color::new(0., 0.5, 0.);
+        let c3 = Color::new(-0.5, 0., 1.);
 
         c.write_pixel(0, 0, c1);
         c.write_pixel(2, 1, c2);

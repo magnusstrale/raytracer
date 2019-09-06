@@ -8,11 +8,11 @@ pub struct Color {
     pub b: f64
 }
 
-pub const BLACK: Color = Color { r: 0.0, g: 0.0, b: 0.0 };
-pub const WHITE: Color = Color { r: 1.0, g: 1.0, b: 1.0 };
-pub const RED: Color = Color { r: 1.0, g: 0.0, b: 0.0 };
-pub const GREEN: Color = Color { r: 0.0, g: 1.0, b: 0.0 };
-pub const BLUE: Color = Color { r: 0.0, g: 0.0, b: 1.0 };
+pub const BLACK: Color = Color { r: 0., g: 0., b: 0.0};
+pub const WHITE: Color = Color { r: 1., g: 1., b: 1. };
+pub const RED: Color = Color { r: 1., g: 0., b: 0. };
+pub const GREEN: Color = Color { r: 0., g: 1., b: 0. };
+pub const BLUE: Color = Color { r: 0., g: 0., b: 1. };
 
 impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
@@ -93,7 +93,7 @@ mod tests {
         let c2 = Color::new(0.7, 0.1, 0.25);
 
         let actual = c1 + c2;
-        let expected = Color::new(1.6, 0.7, 1.0);
+        let expected = Color::new(1.6, 0.7, 1.);
 
         assert_eq!(expected, actual);
     }
@@ -124,8 +124,8 @@ mod tests {
     #[test]
     fn multiplying_colors()
     {
-        let c1 = Color::new(1.0, 0.2, 0.4);
-        let c2 = Color::new(0.9, 1.0, 0.1);
+        let c1 = Color::new(1., 0.2, 0.4);
+        let c2 = Color::new(0.9, 1., 0.1);
 
         let actual = c1 * c2;
         let expected = Color::new(0.9, 0.2, 0.04);

@@ -63,16 +63,16 @@ mod tests {
         assert_eq!(m.ambient, 0.1);
         assert_eq!(m.diffuse, 0.9);
         assert_eq!(m.specular, 0.9);
-        assert_eq!(m.shininess, 200.0);
+        assert_eq!(m.shininess, 200.);
     }
 
     #[test]
     fn lighing_eye_between_light_and_surface() {
         let m = Material::default();
         let position = ORIGO;
-        let eyev = Tuple::vector(0.0, 0.0, -1.0);
-        let normalv = Tuple::vector(0.0, 0.0, -1.0);
-        let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), WHITE);
+        let eyev = Tuple::vector(0., 0., -1.);
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(1.9, 1.9, 1.9));
@@ -83,21 +83,21 @@ mod tests {
         let m = Material::default();
         let position = ORIGO;
         let pv = 2.0f64.sqrt() / 2.0;
-        let eyev = Tuple::vector(0.0, pv, -pv);
-        let normalv = Tuple::vector(0.0, 0.0, -1.0);
-        let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), WHITE);
+        let eyev = Tuple::vector(0., pv, -pv);
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
         let result = m.lighting(&light, position, eyev, normalv);
 
-        assert_eq!(result, Color::new(1.0, 1.0, 1.0));
+        assert_eq!(result, Color::new(1., 1., 1.));
     }
 
     #[test]
     fn lighing_eye_opposite_surface_light_offset_45_degrees() {
         let m = Material::default();
         let position = ORIGO;
-        let eyev = Tuple::vector(0.0, 0.0, -1.0 );
-        let normalv = Tuple::vector(0.0, 0.0, -1.0);
-        let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), WHITE);
+        let eyev = Tuple::vector(0., 0., -1.0 );
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 10., -10.), WHITE);
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(0.7364, 0.7364, 0.7364));
@@ -108,9 +108,9 @@ mod tests {
         let m = Material::default();
         let position = ORIGO;
         let pv = -2.0f64.sqrt() / 2.0;
-        let eyev = Tuple::vector(0.0, pv, pv);
-        let normalv = Tuple::vector(0.0, 0.0, -1.0);
-        let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), WHITE);
+        let eyev = Tuple::vector(0., pv, pv);
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 10., -10.), WHITE);
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(1.6364, 1.6364, 1.6364));
@@ -120,9 +120,9 @@ mod tests {
     fn lighing_light_behind_surface() {
         let m = Material::default();
         let position = ORIGO;
-        let eyev = Tuple::vector(0.0, 0.0, -1.0 );
-        let normalv = Tuple::vector(0.0, 0.0, -1.0);
-        let light = PointLight::new(Tuple::point(0.0, 0.0, 10.0), WHITE);
+        let eyev = Tuple::vector(0., 0., -1.0 );
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 0., 10.), WHITE);
         let result = m.lighting(&light, position, eyev, normalv);
 
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));

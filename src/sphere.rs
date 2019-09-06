@@ -76,31 +76,31 @@ mod tests {
     #[test]
     fn ray_intersect_sphere_at_two_points()
     {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, 4.0);
-        assert_eq!(xs[1].t, 6.0);
+        assert_eq!(xs[0].t, 4.);
+        assert_eq!(xs[1].t, 6.);
     }    
 
     #[test]
     fn ray_intersect_sphere_at_tangent()
     {
-        let r = Ray::new(Tuple::point(0.0, 1.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(Tuple::point(0., 1., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, 5.0);
-        assert_eq!(xs[1].t, 5.0);
+        assert_eq!(xs[0].t, 5.);
+        assert_eq!(xs[1].t, 5.);
     }    
 
     #[test]
     fn ray_miss_sphere()
     {
-        let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(Tuple::point(0., 2., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.intersect(r);
 
@@ -109,24 +109,24 @@ mod tests {
 
     #[test]
     fn ray_originates_insider_sphere() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, -1.0);
-        assert_eq!(xs[1].t, 1.0);
+        assert_eq!(xs[0].t, -1.);
+        assert_eq!(xs[1].t, 1.);
     }
 
     #[test]
     fn sphere_behind_ray() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, 5.0), Tuple::vector(0.0, 0.0, 1.0));
+        let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, -6.0);
-        assert_eq!(xs[1].t, -4.0);
+        assert_eq!(xs[0].t, -6.);
+        assert_eq!(xs[1].t, -4.);
     }
 
     #[test]
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn change_sphere_transform() {
-        let tr = Matrix::translation(2.0, 3.0, 4.0);
+        let tr = Matrix::translation(2., 3., 4.);
         let s = Sphere::new(None, Some(tr));
 
         assert_eq!(s.transform, tr);
@@ -147,21 +147,21 @@ mod tests {
     #[test]
     fn intersect_scaled_sphere_with_ray()
     {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let tr = Matrix::scaling(2.0, 2.0, 2.0);
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let tr = Matrix::scaling(2., 2., 2.);
         let s = Sphere::new(None, Some(tr));
         let xs = s.intersect(r);
 
         assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, 3.0);
-        assert_eq!(xs[1].t, 7.0);
+        assert_eq!(xs[0].t, 3.);
+        assert_eq!(xs[1].t, 7.);
     }
 
     #[test]
     fn intersect_translated_sphere_with_ray()
     {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0));
-        let tr = Matrix::translation(5.0, 0.0, 0.0);
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let tr = Matrix::translation(5., 0., 0.);
         let s = Sphere::new(None, Some(tr));
         let xs = s.intersect(r);
 
@@ -171,25 +171,25 @@ mod tests {
     #[test]
     fn normal_on_sphere_on_x_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(1.0, 0.0, 0.0));
+        let n = s.normal_at(Tuple::point(1., 0., 0.));
 
-        assert_eq!(n, Tuple::vector(1.0, 0.0, 0.0));
+        assert_eq!(n, Tuple::vector(1., 0., 0.));
     }
 
     #[test]
     fn normal_on_sphere_on_y_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(0.0, 1.0, 0.0));
+        let n = s.normal_at(Tuple::point(0., 1., 0.));
 
-        assert_eq!(n, Tuple::vector(0.0, 1.0, 0.0));
+        assert_eq!(n, Tuple::vector(0., 1., 0.));
     }
 
     #[test]
     fn normal_on_sphere_on_z_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(0.0, 0.0, 1.0));
+        let n = s.normal_at(Tuple::point(0., 0., 1.));
 
-        assert_eq!(n, Tuple::vector(0.0, 0.0, 1.0));
+        assert_eq!(n, Tuple::vector(0., 0., 1.));
     }
 
     #[test]
@@ -212,21 +212,21 @@ mod tests {
 
     #[test]
     fn computing_normal_on_translated_sphere() {
-        let tr = Matrix::translation(0.0, 1.0, 0.0);
+        let tr = Matrix::translation(0., 1., 0.);
         let s = Sphere::new(None, Some(tr));
-        let n = s.normal_at(Tuple::point(0.0, 1.70711, -0.70711));
+        let n = s.normal_at(Tuple::point(0., 1.70711, -0.70711));
 
-        assert_eq!(n, Tuple::vector(0.0, 0.70711, -0.70711));
+        assert_eq!(n, Tuple::vector(0., 0.70711, -0.70711));
     }
 
     #[test]
     fn computing_normal_on_transformed_sphere() {
-        let tr = Matrix::scaling(1.0, 0.5, 1.0) * Matrix::rotation_z(PI / 5.0);
+        let tr = Matrix::scaling(1., 0.5, 1.) * Matrix::rotation_z(PI / 5.);
         let s = Sphere::new(None, Some(tr));
         let pv = 2.0f64.sqrt() / 2.0;
-        let n = s.normal_at(Tuple::point(0.0, pv, -pv));
+        let n = s.normal_at(Tuple::point(0., pv, -pv));
 
-        assert_eq!(n, Tuple::vector(0.0, 0.97014, -0.24254));
+        assert_eq!(n, Tuple::vector(0., 0.97014, -0.24254));
     }
 
     #[test]
