@@ -32,7 +32,7 @@ impl World {
         vec![s1, s2]
     }
 
-    fn default_world() -> Self {
+    pub fn default_world() -> Self {
         let light = PointLight::new(Tuple::point(-10.0, 10.0, -10.0), WHITE);
         World::new(light, World::default_objects())
     }
@@ -49,7 +49,7 @@ impl World {
         comps.object.material.lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv)
     }
 
-    fn color_at(&self, ray: Ray) -> Color {
+    pub fn color_at(&self, ray: Ray) -> Color {
         let xs = self.intersect(ray);
         match xs.hit() {
             None => BLACK,

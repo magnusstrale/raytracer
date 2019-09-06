@@ -20,7 +20,7 @@ impl Canvas {
         }
     }
 
-    fn pixel_at(&self, x: usize, y: usize) -> Color {
+    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.canvas[y][x]
     }
 

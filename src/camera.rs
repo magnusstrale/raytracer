@@ -1,9 +1,11 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, SQRT_2};
 use super::approx_eq;
 use super::canvas::Canvas;
+use super::color::Color;
 use super::tuple::{Tuple, ORIGO};
 use super::ray::Ray;
 use super::matrix::{Matrix, IDENTITY_MATRIX};
+use super::world::World;
 
 
 struct Camera {
@@ -48,6 +50,18 @@ impl Camera {
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)
+    }
+
+    pub fn render(&self, world: World) -> Canvas {
+        let mut image = Canvas::new(self.hsize, self.vsize);
+        for y in 0..self.vsize {
+            for x in 0..self.hsize {
+                let ray = self.ray_for_pixel(x, y);
+                let color = world.color_at(ray);
+                image.write_pixel(x, y, color);
+            }
+        }
+        image
     }
 }
 
@@ -103,5 +117,18 @@ mod tests {
 
         assert_eq!(r.origin, Tuple::point(0., 2., -5.));
         assert_eq!(r.direction, Tuple::vector(SQRT_2 / 2., 0., -SQRT_2 / 2.));
+    }
+
+    #[test]
+    fn render_world_with_camera() {
+        let w = World::default_world();
+        let from = Tuple::point(0., 0., -5.);
+        let to = ORIGO;
+        let up = Tuple::vector(0., 1., 0.);
+        let tr = Matrix::view_transform(from, to, up);
+        let c = Camera::new(11, 11, FRAC_PI_2, Some(tr));
+
+        let image = c.render(w);
+        assert_eq!(image.pixel_at(5, 5), Color::new(0.38066, 0.47583, 0.2855));
     }
 }
