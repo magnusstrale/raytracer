@@ -23,7 +23,7 @@ mod tests {
         c.write_pixel(1, 1, RED);
         c.write_pixel(99, 0, GREEN);
         c.write_pixel(99, 99, WHITE);
-        c.save("black.png").expect("Failed to save file");
+        c.save("black.png").unwrap();
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
                         let point = r.position(h.t);
                         let normal = h.object.normal_at(point);
                         let eye = - r.direction;
-                        let color = h.object.material.lighting(&light, point, eye, normal);
+                        let color = h.object.material.lighting(&light, point, eye, normal, false);
                         canvas.write_pixel(x, y, color);
                     },
                     _ => ()

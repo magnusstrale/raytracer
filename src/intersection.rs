@@ -1,11 +1,13 @@
 use core::ops;
 use std::clone::Clone;
 use std::borrow::Borrow;
+use super::EPSILON;
 use super::shape::Shape;
 use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;
 use super::precomputed_data::PrecomputedData;
+use super::matrix::Matrix;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Intersection {
@@ -27,13 +29,16 @@ impl Intersection {
             normalv = -normalv;
             inside = true;
         }
+        let over_point = point + normalv * EPSILON;
+
         PrecomputedData::new(
             self.t,
             self.object.clone(),
             point,
             eyev,
             normalv,
-            inside
+            inside,
+            over_point
         )
     }
 }
@@ -248,5 +253,16 @@ mod tests {
         assert_eq!(comps.eyev, Tuple::vector(0., 0., -1.));
         assert!(comps.inside);
         assert_eq!(comps.normalv, Tuple::vector(0., 0., -1.));
+    }
+
+    #[test]
+    fn hit_should_offset_point() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
+        let transform = Matrix::translation(0., 0., 1.);
+        let shape = Sphere::new(None, Some(transform));
+        let i = Intersection::new(5., shape);
+        let comps = i.prepare_computations(r);
+        assert!(comps.over_point.z < - EPSILON / 2.);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }

@@ -8,11 +8,12 @@ pub struct PrecomputedData {
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
-    pub inside: bool
+    pub inside: bool,
+    pub over_point: Tuple
 }
 
 impl PrecomputedData {
-    pub fn new(t: f64, object: Sphere, point: Tuple, eyev: Tuple, normalv: Tuple, inside: bool) -> Self {
-        PrecomputedData { t, object, point, eyev, normalv, inside }
+    pub fn new(t: f64, object: Sphere, point: Tuple, eyev: Tuple, normalv: Tuple, inside: bool, over_point: Tuple) -> Self {
+        Self { t, object, point, eyev, normalv, inside, over_point }
     }
 }

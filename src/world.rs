@@ -57,7 +57,17 @@ impl World {
     }
 
     fn shade_hit(&self, comps: PrecomputedData) -> Color {
-        comps.object.material.lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv)
+        comps.object.material.lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv, self.is_shadowed(comps.over_point))
+    }
+
+    fn is_shadowed(&self, point: Tuple) -> bool {
+        let v = self.light.unwrap().position - point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+        let r = Ray::new(point, direction);
+        let intersections = self.intersect(r);
+        let h = intersections.hit();
+        h != None && h.unwrap().t < distance
     }
 }
 
@@ -162,5 +172,54 @@ mod tests {
         let c = w.color_at(r);
 
         assert_eq!(c, color);
+    }
+
+    #[test]
+    fn no_shadow_when_nothing_collinear_with_point_and_light() {
+        let w = World::default_world();
+        let p = Tuple::point(0., 10., 0.);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+    #[test]
+    fn shadow_when_object_between_point_and_light() {
+        let w = World::default_world();
+        let p = Tuple::point(10., -10., 10.);
+
+        assert!(w.is_shadowed(p));
+    }
+
+    #[test]
+    fn no_shadow_when_point_behind_light() {
+        let w = World::default_world();
+        let p = Tuple::point(-20., 20., -20.);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+    #[test]
+    fn no_shadow_when_object_behind_point() {
+        let w = World::default_world();
+        let p = Tuple::point(-2., 2., -2.);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+    #[test]
+    fn shade_hit_given_intersection_in_shadow() {
+        let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
+        let s1 = Sphere::default();
+        let s2_transform = Matrix::translation(0., 0., 10.);
+        let s2 = Sphere::new(None, Some(s2_transform));
+
+        let w = World::new(light, vec![s1, s2.clone()]);
+
+        let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
+        let i = Intersection::new(4., s2);
+        let comps = i.prepare_computations(r);
+        let c = w.shade_hit(comps);
+
+        assert_eq!(c, Color::new(0.1, 0.1, 0.1));
     }
 }
