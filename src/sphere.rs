@@ -137,7 +137,7 @@ mod tests {
     #[test]
     fn normal_on_sphere_on_x_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(1., 0., 0.));
+        let n = s.inner_normal_at(Tuple::point(1., 0., 0.));
 
         assert_eq!(n, Tuple::vector(1., 0., 0.));
     }
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn normal_on_sphere_on_y_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(0., 1., 0.));
+        let n = s.inner_normal_at(Tuple::point(0., 1., 0.));
 
         assert_eq!(n, Tuple::vector(0., 1., 0.));
     }
@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn normal_on_sphere_on_z_axis() {
         let s = Sphere::default();
-        let n = s.normal_at(Tuple::point(0., 0., 1.));
+        let n = s.inner_normal_at(Tuple::point(0., 0., 1.));
 
         assert_eq!(n, Tuple::vector(0., 0., 1.));
     }
@@ -162,7 +162,7 @@ mod tests {
     fn normal_on_sphere_on_non_axial_point() {
         let s = Sphere::default();
         let pv = 3.0f64.sqrt() / 3.0;
-        let n = s.normal_at(Tuple::point(pv, pv, pv));
+        let n = s.inner_normal_at(Tuple::point(pv, pv, pv));
 
         assert_eq!(n, Tuple::vector(pv, pv, pv));
     }
@@ -171,7 +171,7 @@ mod tests {
     fn normal_is_normalized_vector() {
         let s = Sphere::default();
         let pv = 3.0f64.sqrt() / 3.0;
-        let n = s.normal_at(Tuple::point(pv, pv, pv));
+        let n = s.inner_normal_at(Tuple::point(pv, pv, pv));
 
         assert_eq!(n, n.normalize());
     }
