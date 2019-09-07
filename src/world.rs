@@ -4,7 +4,7 @@ use super::color::{Color, WHITE, BLACK};
 use super::tuple::{Tuple, ORIGO};
 use super::matrix::Matrix;
 use super::ray::Ray;
-use super::material::{Material, DEFAULT_AMBIENT, DEFAULT_SHININESS};
+use super::material::{Material, DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS};
 use super::intersection::{Intersection, Intersections};
 use super::precomputed_data::PrecomputedData;
 
@@ -57,7 +57,7 @@ impl World {
     }
 
     fn shade_hit(&self, comps: PrecomputedData) -> Color {
-        comps.object.material.lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv, self.is_shadowed(comps.over_point))
+        comps.object.material().lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv, self.is_shadowed(comps.over_point))
     }
 
     fn is_shadowed(&self, point: Tuple) -> bool {
@@ -91,12 +91,12 @@ mod tests {
         let w = World::default_world();
         assert_eq!(w.light.unwrap(), light);
 
-        let m = w.objects[0].material;
+        let m = w.objects[0].material();
         assert_eq!(m.color, Color::new(0.8, 1., 0.6));
         assert_eq!(m.diffuse, 0.7);
         assert_eq!(m.specular, 0.2);
 
-        let tr = w.objects[1].transform;
+        let tr = w.objects[1].transformation();
         assert_eq!(tr, Matrix::scaling(0.5, 0.5, 0.5));
     }
 
@@ -158,16 +158,18 @@ mod tests {
 
     #[test]
     fn color_with_intersection_behind_ray() {
-        let mut w = World::default_world();
-        let color = 
-        {
-            let mut outer = &mut w.objects[0];
-            outer.material.ambient = 1.0;
-
-            let mut inner = &mut w.objects[1];
-            inner.material.ambient = 1.0;
-            inner.material.color
-        };
+        // The setup is a bit messy - basically we want to use default_world() and just tweak the ambient property
+        // to 1.0 for both spheres. But due to the (mostly) immutable design I've opted for, this is not really
+        // possible. Rather most of the setup code needs to be duplicated here. This is embarrasing enough for me
+        // to come back later and fix it.
+        let m1 = Material::new(Color::new(0.8, 1., 0.6), 1., 0.7, 0.2, DEFAULT_SHININESS);
+        let s1 = Sphere::new(Some(m1), None);
+        let tr = Matrix::scaling(0.5, 0.5, 0.5);
+        let color = WHITE;
+        let m2 = Material::new(color, 1., DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS);
+        let s2 = Sphere::new(Some(m2), Some(tr));
+        let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
+        let w = World::new(light, vec![s1, s2]);
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
         let c = w.color_at(r);
 

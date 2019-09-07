@@ -2,7 +2,7 @@ use super::color::{Color, BLACK, WHITE};
 use super::tuple::{Tuple, ORIGO};
 use super::light::PointLight;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Material {
     pub color: Color,
     pub ambient: f64,
@@ -15,6 +15,12 @@ pub const DEFAULT_AMBIENT: f64 = 0.1;
 pub const DEFAULT_DIFFUSE: f64 = 0.9;
 pub const DEFAULT_SPECULAR: f64 = 0.9;
 pub const DEFAULT_SHININESS: f64 = 200.0;
+pub const DEFAULT_MATERIAL: Material = Material {
+    color: WHITE, 
+    ambient: DEFAULT_AMBIENT, 
+    diffuse: DEFAULT_DIFFUSE, 
+    specular: DEFAULT_SPECULAR, 
+    shininess: DEFAULT_SHININESS };
 
 impl Default for Material {
     fn default() -> Self {

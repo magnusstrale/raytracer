@@ -8,7 +8,8 @@ pub struct Tuple {
     pub w: f64
 }
 
-pub const ORIGO:Tuple = Tuple { x: 0., y: 0., z: 0., w: 1. };
+pub const ORIGO: Tuple = Tuple { x: 0., y: 0., z: 0., w: 1. };
+pub const VECTOR_Y_UP: Tuple = Tuple { x: 0., y: 1., z: 0., w: 0. };
 
 impl PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
