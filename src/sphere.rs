@@ -1,37 +1,49 @@
-use super::tuple::{Tuple, ORIGO};
-use super::ray::Ray;
 use super::intersection::{Intersection, Intersections};
-use super::matrix::{Matrix, IDENTITY_MATRIX};
 use super::material::Material;
-use super::shape::Shape;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use super::matrix::{Matrix, IDENTITY_MATRIX};
+use super::ray::Ray;
+use super::shape::{inverse_transform_parameter, Shape};
+use super::tuple::{Tuple, ORIGO};
+use std::any::Any;
 use std::f64::consts::*;
-
-static SPHERE_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
-    index: usize,
     inverse_transform: Matrix,
     transform: Matrix,
-    material: Material
+    material: Material,
 }
 
 impl PartialEq for Sphere {
     fn eq(&self, other: &Self) -> bool {
-        self.index == other.index
+        self.transform == other.transform && self.material == other.material
     }
 }
 
 impl Default for Sphere {
     fn default() -> Self {
         let im = Matrix::identity_matrix();
-        Sphere { index: SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), transform: im, inverse_transform: im, material: Material::default() }
+        Sphere {
+            transform: im,
+            inverse_transform: im,
+            material: Material::default(),
+        }
     }
 }
 
-
 impl Shape for Sphere {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn box_eq(&self, other: &dyn Any) -> bool {
+        other.downcast_ref::<Self>().map_or(false, |a| self == a)
+    }
+
+    fn box_clone(&self) -> Box<dyn Shape> {
+        Box::new((*self).clone())
+    }
+
     fn inner_intersect(&self, object_ray: Ray) -> Intersections {
         let sphere_to_ray = object_ray.origin - ORIGO;
         let a = object_ray.direction.dot(&object_ray.direction);
@@ -39,10 +51,18 @@ impl Shape for Sphere {
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
         let discriminant = b * b - 4.0 * a * c;
 
-        if discriminant < 0.0 { return Intersections::new(vec![]) }
+        if discriminant < 0.0 {
+            return Intersections::new(vec![]);
+        }
 
-        let i1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self.clone());
-        let i2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self.clone());
+        let i1 = Intersection::new(
+            (-b - discriminant.sqrt()) / (2.0 * a),
+            Box::new(self.clone()),
+        );
+        let i2 = Intersection::new(
+            (-b + discriminant.sqrt()) / (2.0 * a),
+            Box::new(self.clone()),
+        );
         Intersections::new(vec![i2, i1])
     }
 
@@ -65,11 +85,10 @@ impl Shape for Sphere {
 
 impl Sphere {
     pub fn new(material: Option<Material>, transform: Option<Matrix>) -> Self {
-        Sphere { 
-            index:              SPHERE_COUNT.fetch_add(1, Ordering::SeqCst), 
-            transform:          transform.unwrap_or(IDENTITY_MATRIX), 
-            inverse_transform:  Sphere::inverse_transform_parameter(transform),
-            material:           material.unwrap_or(Material::default()) 
+        Sphere {
+            transform: transform.unwrap_or(IDENTITY_MATRIX),
+            inverse_transform: inverse_transform_parameter(transform),
+            material: material.unwrap_or(Material::default()),
         }
     }
 }
@@ -79,8 +98,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ray_intersect_sphere_at_two_points()
-    {
+    fn ray_intersect_sphere_at_two_points() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.inner_intersect(r);
@@ -88,11 +106,10 @@ mod tests {
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 4.);
         assert_eq!(xs[1].t, 6.);
-    }    
+    }
 
     #[test]
-    fn ray_intersect_sphere_at_tangent()
-    {
+    fn ray_intersect_sphere_at_tangent() {
         let r = Ray::new(Tuple::point(0., 1., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.inner_intersect(r);
@@ -100,11 +117,10 @@ mod tests {
         assert_eq!(xs.len(), 2);
         assert_eq!(xs[0].t, 5.);
         assert_eq!(xs[1].t, 5.);
-    }    
+    }
 
     #[test]
-    fn ray_miss_sphere()
-    {
+    fn ray_miss_sphere() {
         let r = Ray::new(Tuple::point(0., 2., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs = s.inner_intersect(r);

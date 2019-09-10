@@ -1,22 +1,27 @@
 use core::ops;
-use std::clone::Clone;
-use std::borrow::Borrow;
 use super::EPSILON;
-use super::shape::Shape;
+use super::shape::*;
 use super::sphere::Sphere;
 use super::ray::Ray;
 use super::tuple::Tuple;
 use super::precomputed_data::PrecomputedData;
 use super::matrix::Matrix;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Sphere
+    pub object: Box<dyn Shape + 'static>
+}
+
+impl PartialEq for Intersection {
+    fn eq(&self, other: &Intersection) -> bool {
+        self.t == other.t &&
+        &self.object == &other.object
+    }
 }
 
 impl Intersection {
-    pub fn new(t: f64, object: Sphere) -> Self {
+    pub fn new(t: f64, object: Box<dyn Shape>) -> Self {
         Intersection { t, object }
     }
 
@@ -72,11 +77,13 @@ impl Intersections {
 
     pub fn extend(&mut self, range: Intersections) {
         self.inner.extend(range.inner);
-        if range.current_hit != None {
-            match &self.current_hit {
-                None => self.current_hit = range.current_hit,
-                Some(i) => if i.t > range.current_hit.as_ref().unwrap().t { self.current_hit = range.current_hit;}
-            }
+        match range.current_hit {
+            Some(range_hit) =>
+                match &self.current_hit {
+                    None => self.current_hit = Some(range_hit.clone()),
+                    Some(i) => if i.t > range_hit.t { self.current_hit = Some((*i).clone());}
+                }
+            _ => ()
         }
         self.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
     }
@@ -107,18 +114,18 @@ mod tests {
 
     #[test]
     fn intersection_encapsulates_t_and_object() {
-        let s = Sphere::default();
+        let s: Box<dyn Shape> = Box::new(Sphere::default());
         let i = Intersection::new(3.5, s.clone());
 
         assert_eq!(i.t, 3.5);
-        assert_eq!(i.object, s);
+        assert_eq!(&i.object, &s);
     }
 
     #[test]
     fn aggregate_intersections() {
         let s = Sphere::default();
-        let i1 = Intersection::new(1., s.clone());
-        let i2 = Intersection::new(2., s);
+        let i1 = Intersection::new(1., Box::new(s.clone()));
+        let i2 = Intersection::new(2., Box::new(s));
         let xs = Intersections::new(vec![i1, i2]);
 
         assert_eq!(2, xs.len());
@@ -129,10 +136,10 @@ mod tests {
     #[test]
     fn aggregate_intersections_with_add() {
         let s = Sphere::default();
-        let i1 = Intersection::new(1., s.clone());
-        let i2 = Intersection::new(2., s.clone());
-        let i3 = Intersection::new(3., s.clone());
-        let i4 = Intersection::new(4., s);
+        let i1 = Intersection::new(1., Box::new(s.clone()));
+        let i2 = Intersection::new(2., Box::new(s.clone()));
+        let i3 = Intersection::new(3., Box::new(s.clone()));
+        let i4 = Intersection::new(4., Box::new(s));
         let xs = Intersections::new(vec![i1, i2, i3, i4]);
 
         assert_eq!(4, xs.len());
@@ -147,17 +154,18 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let s = Sphere::default();
         let xs =s.intersect(r);
+        let bs = Box::new(s) as Box::<dyn Shape>;
 
         assert_eq!(2, xs.len());
-        assert_eq!(xs[0].object, s);
-        assert_eq!(xs[1].object, s);
+        assert_eq!(&xs[0].object, &bs);
+        assert_eq!(&xs[1].object, &bs);
     }
 
     #[test]
     fn hit_all_intersections_positive_t() {
         let s = Sphere::default();
-        let i1 = Intersection::new(1., s.clone());
-        let i2 = Intersection::new(2., s);
+        let i1 = Intersection::new(1., Box::new(s.clone()));
+        let i2 = Intersection::new(2., Box::new(s));
         let xs = Intersections::new(vec![i2, i1.clone()]);
         let i = xs.hit().unwrap();
 
@@ -167,8 +175,8 @@ mod tests {
     #[test]
     fn hit_some_intersections_negative_t() {
         let s = Sphere::default();
-        let i1 = Intersection::new(-1., s.clone());
-        let i2 = Intersection::new(1., s);
+        let i1 = Intersection::new(-1., Box::new(s.clone()));
+        let i2 = Intersection::new(1., Box::new(s));
         let xs = Intersections::new(vec![i2.clone(), i1]);
         let i = xs.hit().unwrap();
 
@@ -178,8 +186,8 @@ mod tests {
     #[test]
     fn hit_all_intersections_negative_t() {
         let s = Sphere::default();
-        let i1 = Intersection::new(-2., s.clone());
-        let i2 = Intersection::new(-1., s);
+        let i1 = Intersection::new(-2., Box::new(s.clone()));
+        let i2 = Intersection::new(-1., Box::new(s));
         let xs = Intersections::new(vec![i2, i1]);
         let i = xs.hit();
 
@@ -189,10 +197,10 @@ mod tests {
     #[test]
     fn hit_lowest_non_negative_intersection() {
         let s = Sphere::default();
-        let i1 = Intersection::new(5., s.clone());
-        let i2 = Intersection::new(7., s.clone());
-        let i3 = Intersection::new(-3., s.clone());
-        let i4 = Intersection::new(2., s);
+        let i1 = Intersection::new(5., Box::new(s.clone()));
+        let i2 = Intersection::new(7., Box::new(s.clone()));
+        let i3 = Intersection::new(-3., Box::new(s.clone()));
+        let i4 = Intersection::new(2., Box::new(s));
         let xs = Intersections::new(vec![i1, i2, i3, i4.clone()]);
         let i = xs.hit().unwrap();
 
@@ -202,16 +210,16 @@ mod tests {
     #[test]
     fn extend_intersections_gets_union() {
         let s1 = Sphere::default();
-        let i1 = Intersection::new(5., s1.clone());
-        let i2 = Intersection::new(7., s1.clone());
-        let i3 = Intersection::new(-3., s1.clone());
-        let i4 = Intersection::new(2., s1);
+        let i1 = Intersection::new(5., Box::new(s1.clone()));
+        let i2 = Intersection::new(7., Box::new(s1.clone()));
+        let i3 = Intersection::new(-3., Box::new(s1.clone()));
+        let i4 = Intersection::new(2., Box::new(s1));
         let mut xs1 = Intersections::new(vec![i1, i2, i3, i4]);
 
         let s2 = Sphere::default();
-        let i5 = Intersection::new(-1., s2.clone());
-        let i6 = Intersection::new(1., s2.clone());
-        let i7 = Intersection::new(2., s2);
+        let i5 = Intersection::new(-1., Box::new(s2.clone()));
+        let i6 = Intersection::new(1., Box::new(s2.clone()));
+        let i7 = Intersection::new(2., Box::new(s2));
         let xs2 = Intersections::new(vec![i5, i6.clone(), i7]);
 
         xs1.extend(xs2);    // xs2 is moved
@@ -224,7 +232,7 @@ mod tests {
     fn precompute_state_of_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = Sphere::default();
-        let i = Intersection::new(4., shape);
+        let i = Intersection::new(4., Box::new(shape));
         let comps = i.prepare_computations(r);
 
         assert_eq!(comps.t, i.t);
@@ -236,7 +244,7 @@ mod tests {
     fn hit_when_intersection_on_outside() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = Sphere::default();
-        let i = Intersection::new(4., shape);
+        let i = Intersection::new(4., Box::new(shape));
         let comps = i.prepare_computations(r);
 
         assert!(!comps.inside);
@@ -246,7 +254,7 @@ mod tests {
     fn hit_when_intersection_on_inside() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
         let shape = Sphere::default();
-        let i = Intersection::new(1., shape);
+        let i = Intersection::new(1., Box::new(shape));
         let comps = i.prepare_computations(r);
 
         assert_eq!(comps.point, Tuple::point(0., 0., 1.));
@@ -260,7 +268,7 @@ mod tests {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let transform = Matrix::translation(0., 0., 1.);
         let shape = Sphere::new(None, Some(transform));
-        let i = Intersection::new(5., shape);
+        let i = Intersection::new(5., Box::new(shape));
         let comps = i.prepare_computations(r);
         assert!(comps.over_point.z < - EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);

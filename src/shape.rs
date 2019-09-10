@@ -1,4 +1,6 @@
 use std::f64::consts::{PI, SQRT_2};
+use std::any::Any;
+use std::fmt;
 
 use super::tuple::{Tuple, ORIGO, VECTOR_Y_UP};
 use super::color::GREEN;
@@ -7,7 +9,10 @@ use super::intersection::Intersections;
 use super::material::{Material, DEFAULT_MATERIAL};
 use super::matrix::{Matrix, IDENTITY_MATRIX};
 
-pub trait Shape {
+pub trait Shape: Any + fmt::Debug {
+    fn box_clone(&self) -> Box<dyn Shape>;
+    fn box_eq(&self, other: &dyn Any) -> bool;
+    fn as_any(&self) -> &dyn Any;
     fn inner_intersect(&self, object_ray: Ray) -> Intersections;
     fn inner_normal_at(&self, object_point: Tuple) -> Tuple;
     fn material(&self) -> &Material;
@@ -25,14 +30,33 @@ pub trait Shape {
 
         world_normal.normalize()
     }
+}
 
-    fn inverse_transform_parameter(transform: Option<Matrix>) -> Matrix {
-        match transform {
-            None => IDENTITY_MATRIX,
-            Some(t) => t.inverse().unwrap()
-        }
+pub fn inverse_transform_parameter(transform: Option<Matrix>) -> Matrix {
+    match transform {
+        None => IDENTITY_MATRIX,
+        Some(t) => t.inverse().unwrap()
     }
 }
+
+impl Clone for Box<dyn Shape> {
+    fn clone(&self) -> Self {
+        self.box_clone()
+    }
+}
+
+impl PartialEq for Box<dyn Shape> {
+    fn eq(&self, other: &Box<dyn Shape>) -> bool {
+        self.box_eq(other.as_any())
+    }
+}
+
+// impl fmt::Debug for Box<dyn Shape> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         let a = &&*self as &dyn fmt::Debug;
+//         a.fmt(f)
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -40,13 +64,33 @@ mod tests {
 
     static mut saved_ray: Ray = Ray { origin: ORIGO, direction: VECTOR_Y_UP };
 
+    #[derive(Clone, Debug, PartialEq)]
     struct TestShape {
         material: Material,
         inverse_transform: Matrix,
         transform: Matrix
     }
 
+    fn box_eq(s: &TestShape, other: &dyn Any) -> bool {
+        let value_any = other as &dyn Any;
+        match value_any.downcast_ref::<TestShape>() {
+            Some(as_testshape) => s == as_testshape,
+            None => false
+        }
+    }
     impl Shape for TestShape {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+
+        fn box_eq(&self, other: &dyn Any) -> bool {
+            other.downcast_ref::<Self>().map_or(false, |a| self == a)
+        }
+
+        fn box_clone(&self) -> Box<dyn Shape> {
+            Box::new((*self).clone())
+        }
+
         fn inner_intersect(&self, object_ray: Ray) -> Intersections {
             unsafe {
                 saved_ray = object_ray;
@@ -76,7 +120,7 @@ mod tests {
             Self { 
                 material: material.unwrap_or(DEFAULT_MATERIAL), 
                 transform: transform.unwrap_or(IDENTITY_MATRIX),
-                inverse_transform: TestShape::inverse_transform_parameter(transform)
+                inverse_transform: inverse_transform_parameter(transform)
             }
         }
     }

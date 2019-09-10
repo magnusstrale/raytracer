@@ -57,7 +57,12 @@ impl World {
     }
 
     fn shade_hit(&self, comps: PrecomputedData) -> Color {
-        comps.object.material().lighting(&self.light.unwrap(), comps.point, comps.eyev, comps.normalv, self.is_shadowed(comps.over_point))
+        comps.object.material().lighting(
+            &self.light.unwrap(), 
+            comps.point, 
+            comps.eyev, 
+            comps.normalv, 
+            self.is_shadowed(comps.over_point))
     }
 
     fn is_shadowed(&self, point: Tuple) -> bool {
@@ -118,7 +123,7 @@ mod tests {
         let w = World::default_world();
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = &w.objects[0];
-        let i = Intersection::new(4., shape.clone());
+        let i = Intersection::new(4., Box::new(shape.clone()));
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -131,7 +136,7 @@ mod tests {
         let w = World::new(light, World::default_objects());
         let r = Ray::new(ORIGO, Tuple::vector(0., 0., 1.));
         let shape = &w.objects[1];
-        let i = Intersection::new(0.5, shape.clone());
+        let i = Intersection::new(0.5, Box::new(shape.clone()));
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -218,7 +223,7 @@ mod tests {
         let w = World::new(light, vec![s1, s2.clone()]);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
-        let i = Intersection::new(4., s2);
+        let i = Intersection::new(4., Box::new(s2));
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
