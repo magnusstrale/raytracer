@@ -81,7 +81,7 @@ impl Intersections {
             Some(range_hit) =>
                 match &self.current_hit {
                     None => self.current_hit = Some(range_hit.clone()),
-                    Some(i) => if i.t > range_hit.t { self.current_hit = Some((*i).clone());}
+                    Some(i) => if i.t > range_hit.t { self.current_hit = Some(range_hit.clone());}
                 }
             _ => ()
         }
