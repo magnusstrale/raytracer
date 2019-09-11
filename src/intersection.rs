@@ -10,7 +10,7 @@ use super::matrix::Matrix;
 #[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Box<dyn Shape + 'static>
+    pub object: Box<dyn Shape>
 }
 
 impl PartialEq for Intersection {
@@ -86,14 +86,6 @@ impl Intersections {
             _ => ()
         }
         self.inner.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
-    }
-
-    fn calculate_hit(&self, i: &Intersection) -> Option<Intersection> {
-        if i.t < 0.0 { return None; };
-        match &self.current_hit {
-            None => Some((*i).clone()),
-            Some(h) => if i.t < h.t { Some((*i).clone()) } else { None }
-        }
     }
 
     pub fn len(&self) -> usize {

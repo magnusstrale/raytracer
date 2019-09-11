@@ -51,13 +51,6 @@ impl PartialEq for Box<dyn Shape> {
     }
 }
 
-// impl fmt::Debug for Box<dyn Shape> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         let a = &&*self as &dyn fmt::Debug;
-//         a.fmt(f)
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,13 +64,6 @@ mod tests {
         transform: Matrix
     }
 
-    fn box_eq(s: &TestShape, other: &dyn Any) -> bool {
-        let value_any = other as &dyn Any;
-        match value_any.downcast_ref::<TestShape>() {
-            Some(as_testshape) => s == as_testshape,
-            None => false
-        }
-    }
     impl Shape for TestShape {
         fn as_any(&self) -> &dyn Any {
             self
