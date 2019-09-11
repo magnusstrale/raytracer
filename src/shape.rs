@@ -10,7 +10,7 @@ use super::material::{Material, DEFAULT_MATERIAL};
 use super::matrix::{Matrix, IDENTITY_MATRIX};
 
 pub trait Shape: Any + fmt::Debug {
-    fn box_clone(&self) -> Box<dyn Shape>;
+    fn box_clone(&self) -> BoxShape;
     fn box_eq(&self, other: &dyn Any) -> bool;
     fn as_any(&self) -> &dyn Any;
     fn inner_intersect(&self, object_ray: Ray) -> Intersections;
@@ -32,6 +32,8 @@ pub trait Shape: Any + fmt::Debug {
     }
 }
 
+pub type BoxShape = Box<dyn Shape>;
+
 pub fn inverse_transform_parameter(transform: Option<Matrix>) -> Matrix {
     match transform {
         None => IDENTITY_MATRIX,
@@ -39,14 +41,14 @@ pub fn inverse_transform_parameter(transform: Option<Matrix>) -> Matrix {
     }
 }
 
-impl Clone for Box<dyn Shape> {
+impl Clone for BoxShape {
     fn clone(&self) -> Self {
         self.box_clone()
     }
 }
 
-impl PartialEq for Box<dyn Shape> {
-    fn eq(&self, other: &Box<dyn Shape>) -> bool {
+impl PartialEq for BoxShape {
+    fn eq(&self, other: &BoxShape) -> bool {
         self.box_eq(other.as_any())
     }
 }
@@ -73,7 +75,7 @@ mod tests {
             other.downcast_ref::<Self>().map_or(false, |a| self == a)
         }
 
-        fn box_clone(&self) -> Box<dyn Shape> {
+        fn box_clone(&self) -> BoxShape {
             Box::new((*self).clone())
         }
 

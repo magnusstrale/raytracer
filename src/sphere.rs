@@ -2,7 +2,7 @@ use super::intersection::{Intersection, Intersections};
 use super::material::Material;
 use super::matrix::{Matrix, IDENTITY_MATRIX};
 use super::ray::Ray;
-use super::shape::{inverse_transform_parameter, Shape};
+use super::shape::{inverse_transform_parameter, Shape, BoxShape};
 use super::tuple::{Tuple, ORIGO};
 use std::any::Any;
 use std::f64::consts::*;
@@ -39,7 +39,7 @@ impl Shape for Sphere {
         other.downcast_ref::<Self>().map_or(false, |a| self == a)
     }
 
-    fn box_clone(&self) -> Box<dyn Shape> {
+    fn box_clone(&self) -> BoxShape {
         Box::new((*self).clone())
     }
 
@@ -84,11 +84,19 @@ impl Shape for Sphere {
 
 impl Sphere {
     pub fn new(material: Option<Material>, transform: Option<Matrix>) -> Self {
-        Sphere {
+        Self {
             transform: transform.unwrap_or(IDENTITY_MATRIX),
             inverse_transform: inverse_transform_parameter(transform),
             material: material.unwrap_or(Material::default()),
         }
+    }
+
+    pub fn new_boxed(material: Option<Material>, transform: Option<Matrix>) -> BoxShape {
+        Box::new(Sphere::new(material, transform))
+    }
+
+    pub fn default_boxed() -> BoxShape {
+        Box::new(Sphere::default())
     }
 }
 

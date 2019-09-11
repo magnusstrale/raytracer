@@ -1,9 +1,9 @@
 use super::tuple::Tuple;
-use super::shape::Shape;
+use super::shape::{Shape, BoxShape};
 
 pub struct PrecomputedData {
     pub t: f64,
-    pub object: Box<dyn Shape>,
+    pub object: BoxShape,
     pub point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
@@ -12,7 +12,7 @@ pub struct PrecomputedData {
 }
 
 impl PrecomputedData {
-    pub fn new(t: f64, object: Box<dyn Shape>, point: Tuple, eyev: Tuple, normalv: Tuple, inside: bool, over_point: Tuple) -> Self {
+    pub fn new(t: f64, object: BoxShape, point: Tuple, eyev: Tuple, normalv: Tuple, inside: bool, over_point: Tuple) -> Self {
         Self { t, object, point, eyev, normalv, inside, over_point }
     }
 }

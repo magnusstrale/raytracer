@@ -1,5 +1,5 @@
 use super::sphere::Sphere;
-use super::shape::Shape;
+use super::shape::{Shape, BoxShape};
 use super::color::{Color, WHITE, BLACK};
 use super::tuple::{Tuple, ORIGO};
 use super::matrix::Matrix;
@@ -12,11 +12,11 @@ use super::light::PointLight;
 
 pub struct World {
     pub light: Option<PointLight>,
-    pub objects: Vec<Box<dyn Shape>>
+    pub objects: Vec<BoxShape>
 }
 
 impl World {
-    pub fn new(light: PointLight, objects: Vec<Box<dyn Shape>>) -> Self {
+    pub fn new(light: PointLight, objects: Vec<BoxShape>) -> Self {
         World { light: Some(light), objects }
     }
 
@@ -24,11 +24,11 @@ impl World {
         World { light: None, objects: vec![] }
     }
 
-    fn default_objects() -> Vec<Box<dyn Shape>> {
+    fn default_objects() -> Vec<BoxShape> {
         let m = Material::new(Color::new(0.8, 1., 0.6), DEFAULT_AMBIENT, 0.7, 0.2, DEFAULT_SHININESS);
-        let s1 = Box::new(Sphere::new(Some(m), None));
+        let s1 = Sphere::new_boxed(Some(m), None);
         let tr = Matrix::scaling(0.5, 0.5, 0.5);
-        let s2 = Box::new(Sphere::new(None, Some(tr)));
+        let s2 = Sphere::new_boxed(None, Some(tr));
         vec![s1, s2]
     }
 
@@ -168,11 +168,11 @@ mod tests {
         // possible. Rather most of the setup code needs to be duplicated here. This is embarrasing enough for me
         // to come back later and fix it.
         let m1 = Material::new(Color::new(0.8, 1., 0.6), 1., 0.7, 0.2, DEFAULT_SHININESS);
-        let s1 = Box::new(Sphere::new(Some(m1), None));
+        let s1 = Sphere::new_boxed(Some(m1), None);
         let tr = Matrix::scaling(0.5, 0.5, 0.5);
         let color = WHITE;
         let m2 = Material::new(color, 1., DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS);
-        let s2 = Box::new(Sphere::new(Some(m2), Some(tr)));
+        let s2 = Sphere::new_boxed(Some(m2), Some(tr));
         let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
         let w = World::new(light, vec![s1, s2]);
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
@@ -216,9 +216,9 @@ mod tests {
     #[test]
     fn shade_hit_given_intersection_in_shadow() {
         let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
-        let s1 = Box::new(Sphere::default());
+        let s1 = Sphere::default_boxed();
         let s2_transform = Matrix::translation(0., 0., 10.);
-        let s2 = Box::new(Sphere::new(None, Some(s2_transform)));
+        let s2 = Sphere::new_boxed(None, Some(s2_transform));
 
         let w = World::new(light, vec![s1, s2.clone()]);
 

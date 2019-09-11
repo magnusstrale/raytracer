@@ -10,7 +10,7 @@ use super::matrix::Matrix;
 #[derive(Debug, Clone)]
 pub struct Intersection {
     pub t: f64,
-    pub object: Box<dyn Shape>
+    pub object: BoxShape
 }
 
 impl PartialEq for Intersection {
@@ -21,7 +21,7 @@ impl PartialEq for Intersection {
 }
 
 impl Intersection {
-    pub fn new(t: f64, object: Box<dyn Shape>) -> Self {
+    pub fn new(t: f64, object: BoxShape) -> Self {
         Intersection { t, object }
     }
 
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn intersection_encapsulates_t_and_object() {
-        let s: Box<dyn Shape> = Box::new(Sphere::default());
+        let s = Sphere::default_boxed();
         let i = Intersection::new(3.5, s.clone());
 
         assert_eq!(i.t, 3.5);
@@ -115,9 +115,9 @@ mod tests {
 
     #[test]
     fn aggregate_intersections() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(1., Box::new(s.clone()));
-        let i2 = Intersection::new(2., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(1., s.clone());
+        let i2 = Intersection::new(2., s);
         let xs = Intersections::new(vec![i1, i2]);
 
         assert_eq!(2, xs.len());
@@ -127,11 +127,11 @@ mod tests {
 
     #[test]
     fn aggregate_intersections_with_add() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(1., Box::new(s.clone()));
-        let i2 = Intersection::new(2., Box::new(s.clone()));
-        let i3 = Intersection::new(3., Box::new(s.clone()));
-        let i4 = Intersection::new(4., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(1., s.clone());
+        let i2 = Intersection::new(2., s.clone());
+        let i3 = Intersection::new(3., s.clone());
+        let i4 = Intersection::new(4., s);
         let xs = Intersections::new(vec![i1, i2, i3, i4]);
 
         assert_eq!(4, xs.len());
@@ -144,20 +144,19 @@ mod tests {
     #[test]
     fn intersect_sets_object_on_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let s = Sphere::default();
-        let xs =s.intersect(r);
-        let bs = Box::new(s) as Box::<dyn Shape>;
+        let s = Sphere::default_boxed();
+        let xs = s.intersect(r);
 
         assert_eq!(2, xs.len());
-        assert_eq!(&xs[0].object, &bs);
-        assert_eq!(&xs[1].object, &bs);
+        assert_eq!(&xs[0].object, &s);
+        assert_eq!(&xs[1].object, &s);
     }
 
     #[test]
     fn hit_all_intersections_positive_t() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(1., Box::new(s.clone()));
-        let i2 = Intersection::new(2., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(1., s.clone());
+        let i2 = Intersection::new(2., s);
         let xs = Intersections::new(vec![i2, i1.clone()]);
         let i = xs.hit().unwrap();
 
@@ -166,9 +165,9 @@ mod tests {
 
     #[test]
     fn hit_some_intersections_negative_t() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(-1., Box::new(s.clone()));
-        let i2 = Intersection::new(1., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(-1., s.clone());
+        let i2 = Intersection::new(1., s);
         let xs = Intersections::new(vec![i2.clone(), i1]);
         let i = xs.hit().unwrap();
 
@@ -177,9 +176,9 @@ mod tests {
 
     #[test]
     fn hit_all_intersections_negative_t() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(-2., Box::new(s.clone()));
-        let i2 = Intersection::new(-1., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(-2., s.clone());
+        let i2 = Intersection::new(-1., s);
         let xs = Intersections::new(vec![i2, i1]);
         let i = xs.hit();
 
@@ -188,11 +187,11 @@ mod tests {
 
     #[test]
     fn hit_lowest_non_negative_intersection() {
-        let s = Sphere::default();
-        let i1 = Intersection::new(5., Box::new(s.clone()));
-        let i2 = Intersection::new(7., Box::new(s.clone()));
-        let i3 = Intersection::new(-3., Box::new(s.clone()));
-        let i4 = Intersection::new(2., Box::new(s));
+        let s = Sphere::default_boxed();
+        let i1 = Intersection::new(5., s.clone());
+        let i2 = Intersection::new(7., s.clone());
+        let i3 = Intersection::new(-3., s.clone());
+        let i4 = Intersection::new(2., s);
         let xs = Intersections::new(vec![i1, i2, i3, i4.clone()]);
         let i = xs.hit().unwrap();
 
@@ -201,17 +200,17 @@ mod tests {
 
     #[test]
     fn extend_intersections_gets_union() {
-        let s1 = Sphere::default();
-        let i1 = Intersection::new(5., Box::new(s1.clone()));
-        let i2 = Intersection::new(7., Box::new(s1.clone()));
-        let i3 = Intersection::new(-3., Box::new(s1.clone()));
-        let i4 = Intersection::new(2., Box::new(s1));
+        let s1 = Sphere::default_boxed();
+        let i1 = Intersection::new(5., s1.clone());
+        let i2 = Intersection::new(7., s1.clone());
+        let i3 = Intersection::new(-3., s1.clone());
+        let i4 = Intersection::new(2., s1);
         let mut xs1 = Intersections::new(vec![i1, i2, i3, i4]);
 
-        let s2 = Sphere::default();
-        let i5 = Intersection::new(-1., Box::new(s2.clone()));
-        let i6 = Intersection::new(1., Box::new(s2.clone()));
-        let i7 = Intersection::new(2., Box::new(s2));
+        let s2 = Sphere::default_boxed();
+        let i5 = Intersection::new(-1., s2.clone());
+        let i6 = Intersection::new(1., s2.clone());
+        let i7 = Intersection::new(2., s2);
         let xs2 = Intersections::new(vec![i5, i6.clone(), i7]);
 
         xs1.extend(xs2);    // xs2 is moved
@@ -223,8 +222,8 @@ mod tests {
     #[test]
     fn precompute_state_of_intersection() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::default();
-        let i = Intersection::new(4., Box::new(shape));
+        let shape = Sphere::default_boxed();
+        let i = Intersection::new(4., shape);
         let comps = i.prepare_computations(r);
 
         assert_eq!(comps.t, i.t);
@@ -235,8 +234,8 @@ mod tests {
     #[test]
     fn hit_when_intersection_on_outside() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::default();
-        let i = Intersection::new(4., Box::new(shape));
+        let shape = Sphere::default_boxed();
+        let i = Intersection::new(4., shape);
         let comps = i.prepare_computations(r);
 
         assert!(!comps.inside);
@@ -245,8 +244,8 @@ mod tests {
     #[test]
     fn hit_when_intersection_on_inside() {
         let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::vector(0., 0., 1.));
-        let shape = Sphere::default();
-        let i = Intersection::new(1., Box::new(shape));
+        let shape = Sphere::default_boxed();
+        let i = Intersection::new(1., shape);
         let comps = i.prepare_computations(r);
 
         assert_eq!(comps.point, Tuple::point(0., 0., 1.));
@@ -259,8 +258,8 @@ mod tests {
     fn hit_should_offset_point() {
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let transform = Matrix::translation(0., 0., 1.);
-        let shape = Sphere::new(None, Some(transform));
-        let i = Intersection::new(5., Box::new(shape));
+        let shape = Sphere::new_boxed(None, Some(transform));
+        let i = Intersection::new(5., shape);
         let comps = i.prepare_computations(r);
         assert!(comps.over_point.z < - EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
