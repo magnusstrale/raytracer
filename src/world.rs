@@ -12,11 +12,11 @@ use super::light::PointLight;
 
 pub struct World {
     pub light: Option<PointLight>,
-    pub objects: Vec<Sphere>
+    pub objects: Vec<Box<dyn Shape>>
 }
 
 impl World {
-    pub fn new(light: PointLight, objects: Vec<Sphere>) -> Self {
+    pub fn new(light: PointLight, objects: Vec<Box<dyn Shape>>) -> Self {
         World { light: Some(light), objects }
     }
 
@@ -24,11 +24,11 @@ impl World {
         World { light: None, objects: vec![] }
     }
 
-    fn default_objects() -> Vec<Sphere> {
+    fn default_objects() -> Vec<Box<dyn Shape>> {
         let m = Material::new(Color::new(0.8, 1., 0.6), DEFAULT_AMBIENT, 0.7, 0.2, DEFAULT_SHININESS);
-        let s1 = Sphere::new(Some(m), None);
+        let s1 = Box::new(Sphere::new(Some(m), None));
         let tr = Matrix::scaling(0.5, 0.5, 0.5);
-        let s2 = Sphere::new(None, Some(tr));
+        let s2 = Box::new(Sphere::new(None, Some(tr)));
         vec![s1, s2]
     }
 
@@ -123,7 +123,7 @@ mod tests {
         let w = World::default_world();
         let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::vector(0., 0., 1.));
         let shape = &w.objects[0];
-        let i = Intersection::new(4., Box::new(shape.clone()));
+        let i = Intersection::new(4., shape.clone());
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -136,7 +136,7 @@ mod tests {
         let w = World::new(light, World::default_objects());
         let r = Ray::new(ORIGO, Tuple::vector(0., 0., 1.));
         let shape = &w.objects[1];
-        let i = Intersection::new(0.5, Box::new(shape.clone()));
+        let i = Intersection::new(0.5, shape.clone());
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 
@@ -168,11 +168,11 @@ mod tests {
         // possible. Rather most of the setup code needs to be duplicated here. This is embarrasing enough for me
         // to come back later and fix it.
         let m1 = Material::new(Color::new(0.8, 1., 0.6), 1., 0.7, 0.2, DEFAULT_SHININESS);
-        let s1 = Sphere::new(Some(m1), None);
+        let s1 = Box::new(Sphere::new(Some(m1), None));
         let tr = Matrix::scaling(0.5, 0.5, 0.5);
         let color = WHITE;
         let m2 = Material::new(color, 1., DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS);
-        let s2 = Sphere::new(Some(m2), Some(tr));
+        let s2 = Box::new(Sphere::new(Some(m2), Some(tr)));
         let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
         let w = World::new(light, vec![s1, s2]);
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
@@ -216,14 +216,14 @@ mod tests {
     #[test]
     fn shade_hit_given_intersection_in_shadow() {
         let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
-        let s1 = Sphere::default();
+        let s1 = Box::new(Sphere::default());
         let s2_transform = Matrix::translation(0., 0., 10.);
-        let s2 = Sphere::new(None, Some(s2_transform));
+        let s2 = Box::new(Sphere::new(None, Some(s2_transform)));
 
         let w = World::new(light, vec![s1, s2.clone()]);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
-        let i = Intersection::new(4., Box::new(s2));
+        let i = Intersection::new(4., s2);
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
 

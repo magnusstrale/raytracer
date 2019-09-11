@@ -87,7 +87,7 @@ mod tests {
                         let point = r.position(h.t);
                         let normal = h.object.normal_at(point);
                         let eye = - r.direction;
-                        let color = h.object.material.lighting(&light, point, eye, normal, false);
+                        let color = h.object.material().lighting(&light, point, eye, normal, false);
                         canvas.write_pixel(x, y, color);
                     },
                     _ => ()
@@ -101,33 +101,33 @@ mod tests {
     fn camera_render_world() {
         let floor_material = Material::new(Color::new(1., 0.9, 0.9), DEFAULT_AMBIENT, DEFAULT_DIFFUSE, 0., DEFAULT_SHININESS);
         let floor_transform = Matrix::scaling(10., 0.01, 10.);
-        let floor = Sphere::new(Some(floor_material), Some(floor_transform));
+        let floor = Box::new(Sphere::new(Some(floor_material.clone()), Some(floor_transform)));
 
         let left_wall_transform = 
             Matrix::translation(0., 0., 5.) * 
             Matrix::rotation_y(-FRAC_PI_4) * 
             Matrix::rotation_x(FRAC_PI_2) * 
             Matrix::scaling(10., 0.01, 10.);
-        let left_wall = Sphere::new(Some(floor_material), Some(left_wall_transform));
+        let left_wall = Box::new(Sphere::new(Some(floor_material.clone()), Some(left_wall_transform)));
 
         let right_wall_transform = 
             Matrix::translation(0., 0., 5.) *
             Matrix::rotation_y(FRAC_PI_4) *
             Matrix::rotation_x(FRAC_PI_2) *
             Matrix::scaling(10., 0.01, 10.);
-        let right_wall = Sphere::new(Some(floor_material), Some(right_wall_transform));
+        let right_wall = Box::new(Sphere::new(Some(floor_material), Some(right_wall_transform)));
 
         let middle_transform = Matrix::translation(-0.5, 1., 0.5);
         let middle_material = Material::new(Color::new(0.1, 1., 0.5), DEFAULT_AMBIENT, 0.7, 0.3, DEFAULT_SHININESS);
-        let middle = Sphere::new(Some(middle_material), Some(middle_transform));
+        let middle = Box::new(Sphere::new(Some(middle_material), Some(middle_transform)));
 
         let right_transform = Matrix::translation(1.5, 0.5, -0.5) * Matrix::scaling(0.5, 0.5, 0.5);
         let right_material = Material::new(Color::new(0.5, 1., 0.1), DEFAULT_AMBIENT, 0.7, 0.3, DEFAULT_SHININESS);
-        let right = Sphere::new(Some(right_material), Some(right_transform));
+        let right = Box::new(Sphere::new(Some(right_material), Some(right_transform)));
 
         let left_transform = Matrix::translation(-1.5, 0.33, -0.75) * Matrix::scaling(0.33, 0.33, 0.33);
         let left_material = Material::new(Color::new(1., 0.8, 0.1), DEFAULT_AMBIENT, 0.7, 0.3, DEFAULT_SHININESS);
-        let left = Sphere::new(Some(left_material), Some(left_transform));
+        let left = Box::new(Sphere::new(Some(left_material), Some(left_transform)));
 
         let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
         let world = World::new(light, vec![floor, left_wall, right_wall, middle, right, left]);
