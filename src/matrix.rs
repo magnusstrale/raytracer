@@ -81,9 +81,9 @@ impl Matrix {
     const EMPTY_ROW3: [f64; 3] = [0., 0., 0.];
     const EMPTY_ROW2: [f64; 2] = [0., 0.];
 
-    pub fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Matrix
+    pub fn new(row0: [f64; 4], row1: [f64; 4], row2 : [f64; 4], row3 : [f64; 4]) -> Self
     {
-        Matrix { 
+        Self { 
             inner: [ 
                 Row { inner: row0, size: 4 }, 
                 Row { inner: row1, size: 4 }, 
@@ -92,9 +92,9 @@ impl Matrix {
             size: 4}
     }
 
-    pub fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Matrix
+    pub fn new3(row0: [f64; 3], row1: [f64; 3], row2 : [f64; 3]) -> Self
     {
-        Matrix { 
+        Self { 
             inner: [ 
                 Matrix::coerce_array3(row0), 
                 Matrix::coerce_array3(row1), 
@@ -103,9 +103,9 @@ impl Matrix {
             size: 3}
     }
 
-    pub fn new2(row0: [f64; 2], row1: [f64; 2]) -> Matrix
+    pub fn new2(row0: [f64; 2], row1: [f64; 2]) -> Self
     {
-        Matrix { 
+        Self { 
             inner: [ 
                 Matrix::coerce_array2(row0), 
                 Matrix::coerce_array2(row1), 
@@ -114,15 +114,15 @@ impl Matrix {
             size: 2 }
     }
 
-    pub fn new_empty4() -> Matrix {
+    pub fn new_empty4() -> Self {
         Matrix::new(Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW, Matrix::EMPTY_ROW)
     }
 
-    pub fn new_empty3() -> Matrix {
+    pub fn new_empty3() -> Self {
         Matrix::new3(Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3, Matrix::EMPTY_ROW3)
     }
 
-    pub fn new_empty2() -> Matrix {
+    pub fn new_empty2() -> Self {
         Matrix::new2(Matrix::EMPTY_ROW2, Matrix::EMPTY_ROW2)
     }
 
@@ -134,23 +134,13 @@ impl Matrix {
         Row { inner: [arr[0], arr[1], arr[2], 0.], size: 3 }
     }
 
-    fn empty(&self) -> Matrix {
+    fn empty(&self) -> Self {
         match self.size {
             2 => Matrix::new_empty2(),
             3 => Matrix::new_empty3(),
             4 => Matrix::new_empty4(),
             _ => { panic!("bad dimension") }
         }
-    }
-
-    pub fn identity_matrix() -> Matrix {
-        Matrix { 
-            inner: [
-                Row { inner: [1., 0., 0., 0.], size: 4 }, 
-                Row { inner: [0., 1., 0., 0.], size: 4 },
-                Row { inner: [0., 0., 1., 0.], size: 4 },
-                Row { inner: [0., 0., 0., 1.], size: 4 } ], 
-            size: 4 }
     }
 
     pub fn set(&mut self, row: usize, col: usize, value: f64) {
@@ -162,7 +152,7 @@ impl Matrix {
         Tuple::new(r[0], r[1], r[2], r[3])
     }
 
-    pub fn transpose(&self) -> Matrix {
+    pub fn transpose(&self) -> Self {
         let mut m = self.empty();
         let size = self.size;
         for row in 0..size {
@@ -186,7 +176,7 @@ impl Matrix {
         }
     }
 
-    fn submatrix(&self, row: usize, col: usize) -> Matrix {
+    fn submatrix(&self, row: usize, col: usize) -> Self {
         let size = self.size;
         let mut m = match size {
             4 => Matrix::new_empty3(),
@@ -366,7 +356,7 @@ mod tests {
             [2., 4., 8., 16.],
             [4., 8., 16., 32.]);
         
-        assert_eq!(a, a * Matrix::identity_matrix());
+        assert_eq!(a, a * IDENTITY_MATRIX);
     }
 
     #[test]
@@ -389,7 +379,7 @@ mod tests {
     #[test]
     fn transpose_identity_matrix()
     {
-        assert_eq!(Matrix::identity_matrix(), Matrix::identity_matrix().transpose());
+        assert_eq!(IDENTITY_MATRIX, IDENTITY_MATRIX.transpose());
     }
 
     #[test]

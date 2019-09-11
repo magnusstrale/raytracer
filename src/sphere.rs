@@ -22,10 +22,9 @@ impl PartialEq for Sphere {
 
 impl Default for Sphere {
     fn default() -> Self {
-        let im = Matrix::identity_matrix();
-        Sphere {
-            transform: im,
-            inverse_transform: im,
+        Self {
+            transform: IDENTITY_MATRIX,
+            inverse_transform: IDENTITY_MATRIX,
             material: Material::default(),
         }
     }

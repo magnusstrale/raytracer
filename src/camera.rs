@@ -29,7 +29,7 @@ impl Camera {
             (half_view * aspect_ratio, half_view)
         };
         let pixel_size = half_width * 2. / hsize as f64;
-        Camera { 
+        Self { 
             hsize, 
             vsize, 
             field_of_view,

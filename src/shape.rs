@@ -55,7 +55,7 @@ impl PartialEq for Box<dyn Shape> {
 mod tests {
     use super::*;
 
-    static mut saved_ray: Ray = Ray { origin: ORIGO, direction: VECTOR_Y_UP };
+    static mut SAVED_RAY: Ray = Ray { origin: ORIGO, direction: VECTOR_Y_UP };
 
     #[derive(Clone, Debug, PartialEq)]
     struct TestShape {
@@ -79,7 +79,7 @@ mod tests {
 
         fn inner_intersect(&self, object_ray: Ray) -> Intersections {
             unsafe {
-                saved_ray = object_ray;
+                SAVED_RAY = object_ray;
             }
             Intersections::new(vec![])
         }
@@ -151,8 +151,8 @@ mod tests {
         s.intersect(r);
 
         unsafe {
-            assert_eq!(saved_ray.origin, Tuple::point(0., 0., -2.5));
-            assert_eq!(saved_ray.direction, Tuple::vector(0., 0., 0.5));
+            assert_eq!(SAVED_RAY.origin, Tuple::point(0., 0., -2.5));
+            assert_eq!(SAVED_RAY.direction, Tuple::vector(0., 0., 0.5));
         }
     }
 
@@ -165,8 +165,8 @@ mod tests {
         s.intersect(r);
 
         unsafe {
-            assert_eq!(saved_ray.origin, Tuple::point(-5., 0., -5.));
-            assert_eq!(saved_ray.direction, Tuple::vector(0., 0., 1.));
+            assert_eq!(SAVED_RAY.origin, Tuple::point(-5., 0., -5.));
+            assert_eq!(SAVED_RAY.direction, Tuple::vector(0., 0., 1.));
         }
     }
 

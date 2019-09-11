@@ -4,7 +4,7 @@ use std::f64::consts::*;
 
 impl Matrix {
     pub fn translation(x: f64, y: f64, z: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(0, 3, x);
         m.set(1, 3, y);
         m.set(2, 3, z);
@@ -12,7 +12,7 @@ impl Matrix {
     }
 
     pub fn scaling(x: f64, y: f64, z: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(0, 0, x);
         m.set(1, 1, y);
         m.set(2, 2, z);
@@ -20,7 +20,7 @@ impl Matrix {
     }
 
     pub fn rotation_x(rad: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(1, 1, rad.cos());
         m.set(1, 2, -rad.sin());
         m.set(2, 1, rad.sin());
@@ -29,7 +29,7 @@ impl Matrix {
     }
 
     pub fn rotation_y(rad: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(0, 0, rad.cos());
         m.set(0, 2, rad.sin());
         m.set(2, 0, -rad.sin());
@@ -38,7 +38,7 @@ impl Matrix {
     }
 
     pub fn rotation_z(rad: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(0, 0, rad.cos());
         m.set(0, 1, -rad.sin());
         m.set(1, 0, rad.sin());
@@ -47,7 +47,7 @@ impl Matrix {
     }
 
     pub fn shearing(x_to_y: f64, x_to_z: f64, y_to_x: f64, y_to_z: f64, z_to_x: f64, z_to_y: f64) -> Matrix {
-        let mut m = Matrix::identity_matrix();
+        let mut m = IDENTITY_MATRIX;
         m.set(0, 1, x_to_y);
         m.set(0, 2, x_to_z);
         m.set(1, 0, y_to_x);

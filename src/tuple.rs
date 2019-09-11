@@ -87,15 +87,15 @@ impl From<[f64; 4]> for Tuple {
 }
 
 impl Tuple {
-    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
-        Tuple {x, y, z, w}
+    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
+        Self {x, y, z, w}
     }
 
-    pub fn point(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn point(x: f64, y: f64, z: f64) -> Self {
         Tuple::new(x, y, z, 1.)
     }
 
-    pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn vector(x: f64, y: f64, z: f64) -> Self {
         Tuple::new(x, y, z, 0.)
     }
 
@@ -123,14 +123,14 @@ impl Tuple {
         self.w * t.w
     }
 
-    pub fn cross(&self, t: &Tuple) -> Tuple {
+    pub fn cross(&self, t: &Tuple) -> Self {
         Tuple::vector(
             self.y * t.z - self.z * t.y,
             self.z * t.x - self.x * t.z,
             self.x * t.y - self.y * t.x)
     }
 
-    pub fn reflect(&self, normal: Tuple) -> Tuple {
+    pub fn reflect(&self, normal: Tuple) -> Self {
         *self - normal * 2. * self.dot(&normal)
     }
 }
