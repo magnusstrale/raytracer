@@ -14,3 +14,9 @@ and everything will be fine.
 - run 'cargo test raytracer' to run the tests
 - run 'cargo run raytracer' to get some sample files
 
+## What is the three_spheres_acne.png file?
+
+This is a sample file that was produced when some of the finer points in ray tracing showed up - 
+the concept of 'self shadowing'. I decided to keep it around and since the code no longer can 
+produce a file like that it ended up in the repo.
+
