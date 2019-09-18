@@ -1,7 +1,8 @@
 # The Ray Tracer in Rust
 
-This repo contains the code that I've written by following the Ray Tracer Challenge book. It is
-intended for my personal development, but if someone finds it useful - please let me know.
+This repo contains the code that I've written by following 
+[The Ray Tracer Challenge book](https://www.amazon.com/Ray-Tracer-Challenge-Test-Driven-Renderer/dp/1680502719). 
+It is intended for my personal development, but if you find it useful - please let me know.
 
 Running the code will produce a number of .png-files from the various stages of the book. Some
 files will take time to produce since they are rendered in higher resolution. I e don't
