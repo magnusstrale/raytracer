@@ -12,7 +12,6 @@ pub mod material;
 pub mod world;
 pub mod precomputed_data;
 pub mod camera;
-pub mod sample;
 
 pub const EPSILON: f64 = 0.00001;
 
