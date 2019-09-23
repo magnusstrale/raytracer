@@ -6,6 +6,7 @@ pub mod transform;
 pub mod ray;
 pub mod shape;
 pub mod sphere;
+pub mod plane;
 pub mod intersection;
 pub mod light;
 pub mod material;
