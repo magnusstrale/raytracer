@@ -40,7 +40,7 @@ impl Canvas {
 
     fn to_rgb_bytes(&self) -> Vec<u8> {
         const BYTES_PER_PIXEL: usize = 3;
-        let mut bytes = vec![0u8; &self.width * &self.height * BYTES_PER_PIXEL];
+        let mut bytes = vec![0u8; self.width * self.height * BYTES_PER_PIXEL];
         let mut index = 0;
         for row in &self.canvas {
             for color in row {
@@ -55,7 +55,7 @@ impl Canvas {
 
     pub fn save(&self, file_name: &str) -> Result<()> {
         let file = File::create(file_name)?;
-        let ref mut w = std::io::BufWriter::new(file);
+        let w = &mut std::io::BufWriter::new(file);
 
         let mut encoder = png::Encoder::new(w, self.width as u32, self.height as u32);
         encoder.set(png::ColorType::RGB).set(png::BitDepth::Eight);

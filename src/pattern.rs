@@ -1,4 +1,4 @@
-use super::color::{Color, BLACK, WHITE};
+use super::color::Color;
 use super::tuple::Tuple;
 
 pub struct Pattern {
@@ -28,6 +28,7 @@ impl Pattern {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::color::{BLACK, WHITE};
 
     #[test]
     fn create_stripe_pattern() {

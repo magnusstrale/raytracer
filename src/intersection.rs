@@ -1,11 +1,8 @@
 use core::ops;
 use super::EPSILON;
 use super::shape::*;
-use super::sphere::Sphere;
 use super::ray::Ray;
-use super::tuple::Tuple;
 use super::precomputed_data::PrecomputedData;
-use super::matrix::Matrix;
 
 #[derive(Debug, Clone)]
 pub struct Intersection {
@@ -29,11 +26,12 @@ impl Intersection {
         let point = ray.position(self.t);
         let eyev = -ray.direction;
         let mut normalv = self.object.normal_at(point);
-        let mut inside = false;
-        if normalv.dot(&eyev) < 0.0 {
+        let inside = if normalv.dot(&eyev) < 0. {
             normalv = -normalv;
-            inside = true;
-        }
+            true
+        } else {
+            false
+        };
         let over_point = point + normalv * EPSILON;
 
         PrecomputedData::new(
@@ -103,6 +101,9 @@ impl Intersections {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix::Matrix;
+    use crate::tuple::Tuple;
+    use crate::sphere::Sphere;
 
     #[test]
     fn intersection_encapsulates_t_and_object() {

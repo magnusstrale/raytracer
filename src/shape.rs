@@ -1,12 +1,10 @@
-use std::f64::consts::{PI, SQRT_2};
 use std::any::Any;
 use std::fmt;
 
-use super::tuple::{Tuple, ORIGO, VECTOR_Y_UP};
-use super::color::GREEN;
+use super::tuple::Tuple;
 use super::ray::Ray;
 use super::intersection::Intersections;
-use super::material::{Material, DEFAULT_MATERIAL};
+use super::material::Material;
 use super::matrix::{Matrix, IDENTITY_MATRIX};
 
 pub trait Shape: Any + fmt::Debug {
@@ -56,6 +54,10 @@ impl PartialEq for BoxShape {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::f64::consts::{PI, SQRT_2};
+    use crate::color::GREEN;
+    use crate::tuple::{ORIGO, VECTOR_Y_UP};
+    use crate::material::DEFAULT_MATERIAL;
 
     static mut SAVED_RAY: Ray = Ray { origin: ORIGO, direction: VECTOR_Y_UP };
 

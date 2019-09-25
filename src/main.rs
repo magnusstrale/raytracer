@@ -120,7 +120,7 @@ fn camera_render_world(filename: &str) {
     let left_material = Material::new(Color::new(1., 0.8, 0.1), DEFAULT_AMBIENT, 0.7, 0.3, DEFAULT_SHININESS);
     let left = Sphere::new_boxed(Some(left_material), Some(left_transform));
 
-    let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
+    let light = Some(PointLight::new(Tuple::point(-10., 10., -10.), WHITE));
     let world = World::new(light, vec![floor, left_wall, right_wall, middle, right, left]);
     let view_transform = Matrix::view_transform(Tuple::point(0., 1.5, -5.), Tuple::point(0., 1., 0.), Tuple::vector(0., 1., 0.));
     let camera = Camera::new(700, 500, FRAC_PI_3, Some(view_transform));

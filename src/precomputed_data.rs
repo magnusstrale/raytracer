@@ -1,5 +1,5 @@
 use super::tuple::Tuple;
-use super::shape::{Shape, BoxShape};
+use super::shape::BoxShape;
 
 pub struct PrecomputedData {
     pub t: f64,

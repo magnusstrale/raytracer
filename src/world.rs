@@ -1,11 +1,11 @@
 use super::sphere::Sphere;
-use super::shape::{Shape, BoxShape};
+use super::shape::BoxShape;
 use super::color::{Color, WHITE, BLACK};
-use super::tuple::{Tuple, ORIGO};
+use super::tuple::Tuple;
 use super::matrix::Matrix;
 use super::ray::Ray;
-use super::material::{Material, DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS};
-use super::intersection::{Intersection, Intersections};
+use super::material::{Material, DEFAULT_AMBIENT, DEFAULT_SHININESS};
+use super::intersection::Intersections;
 use super::precomputed_data::PrecomputedData;
 
 use super::light::PointLight;
@@ -16,12 +16,8 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(light: PointLight, objects: Vec<BoxShape>) -> Self {
-        World { light: Some(light), objects }
-    }
-
-    fn empty() -> Self {
-        World { light: None, objects: vec![] }
+    pub fn new(light: Option<PointLight>, objects: Vec<BoxShape>) -> Self {
+        World { light, objects }
     }
 
     fn default_objects() -> Vec<BoxShape> {
@@ -33,7 +29,7 @@ impl World {
     }
 
     pub fn default_world() -> Self {
-        let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
+        let light = Some(PointLight::new(Tuple::point(-10., 10., -10.), WHITE));
         World::new(light, World::default_objects())
     }
 
@@ -79,11 +75,14 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tuple::ORIGO;
+    use crate::material::{DEFAULT_DIFFUSE, DEFAULT_SPECULAR};
+    use crate::intersection::Intersection;
 
     #[test]
     fn empty_world()
     {
-        let w = World::empty();
+        let w = World::new(None, vec![]);
 
         assert_eq!(w.objects.len(), 0);
         assert_eq!(w.light, None);
@@ -132,7 +131,7 @@ mod tests {
 
     #[test]
     fn shading_intersection_from_inside() {
-        let light = PointLight::new(Tuple::point(0., 0.25, 0.), WHITE);
+        let light = Some(PointLight::new(Tuple::point(0., 0.25, 0.), WHITE));
         let w = World::new(light, World::default_objects());
         let r = Ray::new(ORIGO, Tuple::vector(0., 0., 1.));
         let shape = &w.objects[1];
@@ -173,7 +172,7 @@ mod tests {
         let color = WHITE;
         let m2 = Material::new(color, 1., DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS);
         let s2 = Sphere::new_boxed(Some(m2), Some(tr));
-        let light = PointLight::new(Tuple::point(-10., 10., -10.), WHITE);
+        let light = Some(PointLight::new(Tuple::point(-10., 10., -10.), WHITE));
         let w = World::new(light, vec![s1, s2]);
         let r = Ray::new(Tuple::point(0., 0., 0.75), Tuple::vector(0., 0., -1.));
         let c = w.color_at(r);
@@ -220,7 +219,7 @@ mod tests {
         let s2_transform = Matrix::translation(0., 0., 10.);
         let s2 = Sphere::new_boxed(None, Some(s2_transform));
 
-        let w = World::new(light, vec![s1, s2.clone()]);
+        let w = World::new(Some(light), vec![s1, s2.clone()]);
 
         let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::vector(0., 0., 1.));
         let i = Intersection::new(4., s2);

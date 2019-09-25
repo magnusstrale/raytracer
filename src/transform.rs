@@ -1,6 +1,5 @@
 use super::matrix::{Matrix, IDENTITY_MATRIX};
-use super::tuple::{Tuple, ORIGO};
-use std::f64::consts::*;
+use super::tuple::Tuple;
 
 impl Matrix {
     pub fn translation(x: f64, y: f64, z: f64) -> Matrix {
@@ -73,6 +72,8 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::f64::consts::*;
+    use crate::tuple::ORIGO;
 
     #[test]
     fn multiply_by_translation_matrix() {

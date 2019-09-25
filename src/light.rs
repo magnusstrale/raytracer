@@ -1,4 +1,4 @@
-use super::color::{Color, WHITE};
+use super::color::Color;
 use super::tuple::Tuple;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -16,6 +16,7 @@ impl PointLight {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::color::WHITE;
 
     #[test]
     fn point_light_has_position_and_intensity() {

@@ -1,7 +1,4 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, SQRT_2};
-use super::approx_eq;
 use super::canvas::Canvas;
-use super::color::Color;
 use super::tuple::{Tuple, ORIGO};
 use super::ray::Ray;
 use super::matrix::{Matrix, IDENTITY_MATRIX};
@@ -15,8 +12,7 @@ pub struct Camera {
     pub pixel_size: f64,
     pub transform: Matrix,
     half_width: f64,
-    half_height: f64,
-    canvas: Canvas
+    half_height: f64
 }
 
 impl Camera {
@@ -36,8 +32,7 @@ impl Camera {
             pixel_size,
             transform: transform.unwrap_or(IDENTITY_MATRIX), 
             half_width,
-            half_height,
-            canvas: Canvas::new(hsize, vsize) }
+            half_height }
     }
 
     pub fn ray_for_pixel(&self, px: usize, py: usize) -> Ray {
@@ -68,6 +63,9 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, SQRT_2};
+    use crate::approx_eq;
+    use crate::color::Color;
 
     #[test]
     fn construct_camera() {

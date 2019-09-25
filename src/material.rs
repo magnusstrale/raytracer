@@ -1,5 +1,5 @@
 use super::color::{Color, BLACK, WHITE};
-use super::tuple::{Tuple, ORIGO};
+use super::tuple::Tuple;
 use super::light::PointLight;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -62,6 +62,7 @@ impl Material {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tuple::ORIGO;
 
     #[test]
     fn default_material() {

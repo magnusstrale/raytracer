@@ -5,7 +5,6 @@ use super::ray::Ray;
 use super::shape::{inverse_transform_parameter, Shape, BoxShape};
 use super::tuple::{Tuple, ORIGO};
 use std::any::Any;
-use std::f64::consts::*;
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
@@ -87,7 +86,7 @@ impl Sphere {
         Self {
             transform: transform.unwrap_or(IDENTITY_MATRIX),
             inverse_transform: inverse_transform_parameter(transform),
-            material: material.unwrap_or(Material::default()),
+            material: material.unwrap_or_default(),
         }
     }
 
