@@ -109,7 +109,7 @@ mod tests {
         assert_eq!(&xs[0].object, &box_plane(p));
     }
     #[test]
-    fn below() {
+    fn ray_intersecting_plane_from_below() {
         let p = Plane::new(None, None);
         let r = Ray::new(Tuple::point(0., -1., 0.), Tuple::vector(0., 1., 0.));
         let xs = p.inner_intersect(r);

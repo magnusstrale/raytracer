@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn assign_material() {
-        let m = Material::new(GREEN, 0.1, 0.2, 0.3, 0.4);
+        let m = Material::new(GREEN, 0.1, 0.2, 0.3, 0.4, None);
         let s = TestShape::new(Some(m.clone()), None);
 
         assert_eq!(*s.material(), m);

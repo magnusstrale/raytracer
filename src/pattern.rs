@@ -1,6 +1,7 @@
 use super::color::Color;
 use super::tuple::Tuple;
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Pattern {
     a: Color,
     b: Color

@@ -1,6 +1,7 @@
 use super::color::{Color, BLACK, WHITE};
 use super::tuple::Tuple;
 use super::light::PointLight;
+use super::pattern::Pattern;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Material {
@@ -8,7 +9,8 @@ pub struct Material {
     pub ambient: f64,
     pub diffuse: f64,
     pub specular: f64,
-    pub shininess: f64
+    pub shininess: f64,
+    pub pattern: Option<Pattern>
 }
 
 pub const DEFAULT_AMBIENT: f64 = 0.1;
@@ -20,21 +22,26 @@ pub const DEFAULT_MATERIAL: Material = Material {
     ambient: DEFAULT_AMBIENT, 
     diffuse: DEFAULT_DIFFUSE, 
     specular: DEFAULT_SPECULAR, 
-    shininess: DEFAULT_SHININESS };
+    shininess: DEFAULT_SHININESS,
+    pattern: None };
 
 impl Default for Material {
     fn default() -> Self {
-        Material::new(WHITE, DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS)
+        Material::new(WHITE, DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_SHININESS, None)
     }
 }
 
 impl Material {
-    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Material {
-        Material { color, ambient, diffuse, specular, shininess }
+    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64, pattern: Option<Pattern>) -> Material {
+        Material { color, ambient, diffuse, specular, shininess, pattern }
     }
 
     pub fn lighting(&self, light: &PointLight, point: Tuple, eyev: Tuple, normalv: Tuple, in_shadow: bool) -> Color {
-        let effective_color = self.color * light.intensity;
+        let color = match self.pattern {
+            Some(p) => p.stripe_at(point),
+            None => self.color
+        };
+        let effective_color = color * light.intensity;
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * self.ambient;
         let light_dot_normal = lightv.dot(&normalv);
@@ -146,5 +153,18 @@ mod tests {
         let result = m.lighting(&light, position, eyev, normalv, in_shadow);
 
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn lighting_with_pattern_applied() {
+        let m = Material::new(WHITE, 1., 0., 0., DEFAULT_SHININESS, Some(Pattern::stripe_pattern(WHITE, BLACK)));
+        let eyev = Tuple::vector(0., 0., -1.);
+        let normalv = Tuple::vector(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
+        let c1 = m.lighting(&light, Tuple::point(0.9, 0., 0.), eyev, normalv, false);
+        let c2 = m.lighting(&light, Tuple::point(1.1, 0., 0.), eyev, normalv, false);
+
+        assert_eq!(c1, WHITE);
+        assert_eq!(c2, BLACK);
     }
 }
