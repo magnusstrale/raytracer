@@ -76,6 +76,10 @@ impl PartialEq for Matrix {
     }
 }
 
+impl Default for Matrix {
+    fn default() -> Self { IDENTITY_MATRIX }
+}
+
 impl Matrix {
     const EMPTY_ROW:  [f64; 4] = [0., 0., 0., 0.];
     const EMPTY_ROW3: [f64; 3] = [0., 0., 0.];

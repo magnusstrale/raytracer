@@ -108,8 +108,8 @@ mod tests {
     impl TestShape {
         fn new(material: Option<Material>, transform: Option<Matrix>) -> Self {
             Self { 
-                material: material.unwrap_or(DEFAULT_MATERIAL), 
-                transform: transform.unwrap_or(IDENTITY_MATRIX),
+                material: material.unwrap_or_default(), 
+                transform: transform.unwrap_or_default(),
                 inverse_transform: inverse_transform_parameter(transform)
             }
         }

@@ -30,7 +30,7 @@ impl Camera {
             vsize, 
             field_of_view,
             pixel_size,
-            transform: transform.unwrap_or(IDENTITY_MATRIX), 
+            transform: transform.unwrap_or_default(), 
             half_width,
             half_height }
     }

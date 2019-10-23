@@ -1,18 +1,24 @@
 use super::color::Color;
 use super::tuple::Tuple;
 use super::matrix::Matrix;
-use super::shape::Shape;
+use super::shape::{Shape, inverse_transform_parameter};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Pattern {
     a: Color,
     b: Color,
-    transform: Option<Matrix>
+    transform: Matrix,
+    inverse_transform: Matrix
 }
 
 impl Pattern {
     pub fn stripe_pattern(a: Color, b: Color, transform: Option<Matrix>) -> Self {
-        Pattern { a, b, transform }
+        Pattern { 
+            a, 
+            b, 
+            transform: transform.unwrap_or_default(),
+            inverse_transform: inverse_transform_parameter(transform)
+        }
     }
 
     pub fn stripe_at(&self, point: Tuple) -> Color {
@@ -31,10 +37,7 @@ impl Pattern {
 
     pub fn stripe_at_object(&self, object: &dyn Shape, world_point: Tuple) -> Color {
         let object_point = object.inverse_transformation() * world_point;
-        let pattern_point = match self.transform {
-            None => object_point,
-            Some(t) => t.inverse().unwrap() * object_point
-        };
+        let pattern_point = self.inverse_transform * object_point;
         self.stripe_at(pattern_point)
     }
 }

@@ -55,9 +55,9 @@ impl Shape for Plane {
 impl Plane {
     pub fn new(material: Option<Material>, transform: Option<Matrix>) -> Self {
         Self {
-            transform: transform.unwrap_or(IDENTITY_MATRIX),
+            transform: transform.unwrap_or_default(),
             inverse_transform: inverse_transform_parameter(transform),
-            material: material.unwrap_or(Material::default()),
+            material: material.unwrap_or_default(),
         }
     }
 }
