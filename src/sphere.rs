@@ -46,19 +46,19 @@ impl Shape for Sphere {
         let sphere_to_ray = object_ray.origin - ORIGO;
         let a = object_ray.direction.dot(&object_ray.direction);
         let b = 2.0 * object_ray.direction.dot(&sphere_to_ray);
-        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
-        let discriminant = b * b - 4.0 * a * c;
+        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.;
+        let discriminant = b * b - 4. * a * c;
 
-        if discriminant < 0.0 {
+        if discriminant < 0. {
             return Intersections::new(vec![]);
         }
 
         let i1 = Intersection::new(
-            (-b - discriminant.sqrt()) / (2.0 * a),
+            (-b - discriminant.sqrt()) / (2. * a),
             Box::new(self.clone()),
         );
         let i2 = Intersection::new(
-            (-b + discriminant.sqrt()) / (2.0 * a),
+            (-b + discriminant.sqrt()) / (2. * a),
             Box::new(self.clone()),
         );
         Intersections::new(vec![i2, i1])

@@ -62,7 +62,7 @@ fn rendered_sphere(filename: &str)
     let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
     let mut m = Material::default();
     m.color = Color::new(1., 0.2, 1.);
-    m.pattern = Some(Pattern::stripe_pattern(GREEN, RED, Some(Matrix::scaling(0.1, 0.1, 0.1))));
+    m.pattern = Some(StripePattern::new_boxed(GREEN, RED, Some(Matrix::scaling(0.1, 0.1, 0.1))));
     let tr = Matrix::shearing(1., 0., 0.5, 0., 0., 0.) * Matrix::scaling(1., 0.5, 1.);
     let shape = Sphere::new(Some(m), Some(tr));
     let light_position = Tuple::point(-10., 10., -10.);

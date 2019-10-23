@@ -1,7 +1,7 @@
 use super::color::{Color, BLACK, WHITE};
 use super::tuple::Tuple;
 use super::light::PointLight;
-use super::pattern::Pattern;
+use super::pattern::BoxPattern;
 use super::shape::Shape;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,7 +11,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
-    pub pattern: Option<Pattern>
+    pub pattern: Option<BoxPattern>
 }
 
 pub const DEFAULT_AMBIENT: f64 = 0.1;
@@ -33,13 +33,13 @@ impl Default for Material {
 }
 
 impl Material {
-    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64, pattern: Option<Pattern>) -> Material {
+    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64, pattern: Option<BoxPattern>) -> Material {
         Material { color, ambient, diffuse, specular, shininess, pattern }
     }
 
     pub fn lighting(&self, object: &dyn Shape, light: &PointLight, point: Tuple, eyev: Tuple, normalv: Tuple, in_shadow: bool) -> Color {
-        let color = match self.pattern {
-            Some(p) => p.stripe_at_object(object, point),
+        let color = match &self.pattern {
+            Some(p) => p.pattern_at_shape(object, point),
             None => self.color
         };
         let effective_color = color * light.intensity;
@@ -72,6 +72,7 @@ mod tests {
     use super::*;
     use crate::tuple::ORIGO;
     use crate::sphere::Sphere;
+    use crate::pattern::StripePattern;
 
     #[test]
     fn default_material() {
@@ -166,7 +167,7 @@ mod tests {
     #[test]
     fn lighting_with_pattern_applied() {
         let object = Sphere::new(None, None);
-        let m = Material::new(WHITE, 1., 0., 0., DEFAULT_SHININESS, Some(Pattern::stripe_pattern(WHITE, BLACK, None)));
+        let m = Material::new(WHITE, 1., 0., 0., DEFAULT_SHININESS, Some(StripePattern::new_boxed(WHITE, BLACK, None)));
         let eyev = Tuple::vector(0., 0., -1.);
         let normalv = Tuple::vector(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);
