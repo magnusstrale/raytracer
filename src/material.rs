@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn lighting_with_pattern_applied() {
-        let m = Material::new(WHITE, 1., 0., 0., DEFAULT_SHININESS, Some(Pattern::stripe_pattern(WHITE, BLACK)));
+        let m = Material::new(WHITE, 1., 0., 0., DEFAULT_SHININESS, Some(Pattern::stripe_pattern(WHITE, BLACK, None)));
         let eyev = Tuple::vector(0., 0., -1.);
         let normalv = Tuple::vector(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., -10.), WHITE);

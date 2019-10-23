@@ -1,15 +1,18 @@
 use super::color::Color;
 use super::tuple::Tuple;
+use super::matrix::Matrix;
+use super::shape::Shape;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Pattern {
     a: Color,
-    b: Color
+    b: Color,
+    transform: Option<Matrix>
 }
 
 impl Pattern {
-    pub fn stripe_pattern(a: Color, b: Color) -> Self {
-        Pattern { a, b }
+    pub fn stripe_pattern(a: Color, b: Color, transform: Option<Matrix>) -> Self {
+        Pattern { a, b, transform }
     }
 
     pub fn stripe_at(&self, point: Tuple) -> Color {
@@ -25,15 +28,26 @@ impl Pattern {
             self.b
         }
     }
+
+    pub fn stripe_at_object(&self, object: &dyn Shape, world_point: Tuple) -> Color {
+        let object_point = object.inverse_transformation() * world_point;
+        let pattern_point = match self.transform {
+            None => object_point,
+            Some(t) => t.inverse().unwrap() * object_point
+        };
+        self.stripe_at(pattern_point)
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::color::{BLACK, WHITE};
+    use crate::sphere::Sphere;
 
     #[test]
     fn create_stripe_pattern() {
-        let pattern = Pattern::stripe_pattern(WHITE, BLACK);
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, None);
 
         assert_eq!(pattern.a, WHITE);
         assert_eq!(pattern.b, BLACK);
@@ -41,7 +55,7 @@ mod tests {
 
     #[test]
     fn stripe_pattern_constant_in_y() {
-        let pattern = Pattern::stripe_pattern(WHITE, BLACK);
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, None);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 0., 0.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 1., 0.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 2., 0.)), WHITE);
@@ -49,7 +63,7 @@ mod tests {
 
     #[test]
     fn stripe_pattern_constant_in_z() {
-        let pattern = Pattern::stripe_pattern(WHITE, BLACK);
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, None);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 0., 0.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 0., 1.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 0., 2.)), WHITE);
@@ -57,12 +71,36 @@ mod tests {
 
     #[test]
     fn stripe_pattern_alternates_in_x() {
-        let pattern = Pattern::stripe_pattern(WHITE, BLACK);
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, None);
         assert_eq!(pattern.stripe_at(Tuple::point(0., 0., 0.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(0.9, 0., 0.)), WHITE);
         assert_eq!(pattern.stripe_at(Tuple::point(1., 0., 0.)), BLACK);
         assert_eq!(pattern.stripe_at(Tuple::point(-0.1, 0., 0.)), BLACK);
         assert_eq!(pattern.stripe_at(Tuple::point(-1., 0., 0.)), BLACK);
         assert_eq!(pattern.stripe_at(Tuple::point(-1.1, 0., 0.)), WHITE);
+    }
+
+    #[test]
+    fn stripes_with_object_transformation() {
+        let o = Sphere::new(None, Some(Matrix::scaling(2., 2., 2.)));
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, None);
+        let c = pattern.stripe_at_object(&o, Tuple::point(1.5, 0., 0.));
+        assert_eq!(WHITE, c);
+    }
+
+    #[test]
+    fn stripes_with_pattern_transformation() {
+        let o = Sphere::new(None, None);
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, Some(Matrix::scaling(2., 2., 2.)));
+        let c = pattern.stripe_at_object(&o, Tuple::point(1.5, 0., 0.));
+        assert_eq!(WHITE, c);
+    }
+
+    #[test]
+    fn patter_with_object_and_pattern_transformation() {
+        let o = Sphere::new(None, Some(Matrix::scaling(2., 2., 2.)));
+        let pattern = Pattern::stripe_pattern(WHITE, BLACK, Some(Matrix::translation(0.5, 0., 0.)));
+        let c = pattern.stripe_at_object(&o, Tuple::point(2.5, 0., 0.));
+        assert_eq!(WHITE, c);
     }
 }
