@@ -44,7 +44,7 @@ pub struct StripePattern {
 
 impl StripePattern {
     pub fn new(a: Color, b: Color, transform: Option<Matrix>) -> Self {
-        StripePattern { 
+        Self { 
             a, 
             b, 
             transform: transform.unwrap_or_default(),
@@ -53,7 +53,7 @@ impl StripePattern {
     }
 
     pub fn new_boxed(a: Color, b: Color, transform: Option<Matrix>) -> BoxPattern {
-        Box::new(StripePattern::new(a, b, transform))
+        Box::new(Self::new(a, b, transform))
     }
 }
 
@@ -93,12 +93,64 @@ impl Pattern for StripePattern {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct GradientPattern {
+    a: Color,
+    b: Color,
+    transform: Matrix,
+    inverse_transform: Matrix
+}
+
+impl GradientPattern {
+    pub fn new(a: Color, b: Color, transform: Option<Matrix>) -> Self {
+        Self { 
+            a, 
+            b, 
+            transform: transform.unwrap_or_default(),
+            inverse_transform: inverse_transform_parameter(transform)
+        }
+    }
+
+    pub fn new_boxed(a: Color, b: Color, transform: Option<Matrix>) -> BoxPattern {
+        Box::new(Self::new(a, b, transform))
+    }
+}
+
+impl Pattern for GradientPattern {
+    fn box_clone(&self) -> BoxPattern {
+        Box::new((*self).clone())
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn box_eq(&self, other: &dyn Any) -> bool {
+        other.downcast_ref::<Self>().map_or(false, |a| self == a)
+    }
+
+    fn transformation(&self) -> Matrix {
+        self.transform
+    }
+
+    fn inverse_transformation(&self) -> Matrix {
+        self.inverse_transform
+    }
+
+    fn inner_pattern_at(&self, pattern_point: Tuple) -> Color {
+        let distance = self.b - self.a;
+        let fraction = pattern_point.x.fract();
+        self.a + distance * fraction
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::color::{BLACK, WHITE};
     use crate::sphere::Sphere;
     use crate::matrix::IDENTITY_MATRIX;
+    use crate::EPSILON;
 
     #[derive(Debug, Clone, PartialEq)]
     struct TestPattern {
@@ -238,5 +290,15 @@ mod tests {
         let tp = TestPattern::new_boxed(Some(Matrix::translation(0.5, 1., 1.5)));
         let c = tp.pattern_at_shape(&*shape, Tuple::point(2.5, 3., 3.5));
         assert_eq!(c, Color::new(0.75, 0.5, 0.25));
+    }
+
+    #[test]
+    fn gradient_linearly_interpolates_between_colors() {
+        let pattern = GradientPattern::new(WHITE, BLACK, None);
+        assert_eq!(pattern.inner_pattern_at(Tuple::point(0., 0., 0.)), WHITE);
+        assert_eq!(pattern.inner_pattern_at(Tuple::point(0.25, 0., 0.)), Color::new(0.75, 0.75, 0.75));
+        assert_eq!(pattern.inner_pattern_at(Tuple::point(0.5, 0., 0.)), Color::new(0.5, 0.5, 0.5));
+        assert_eq!(pattern.inner_pattern_at(Tuple::point(0.75, 0., 0.)), Color::new(0.25, 0.25, 0.25));
+        assert_eq!(pattern.inner_pattern_at(Tuple::point(1. - EPSILON, 0., 0.)), BLACK);
     }
 }
