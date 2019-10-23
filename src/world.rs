@@ -54,6 +54,7 @@ impl World {
 
     fn shade_hit(&self, comps: PrecomputedData) -> Color {
         comps.object.material().lighting(
+            &*(comps.object),
             &self.light.unwrap(), 
             comps.point, 
             comps.eyev, 

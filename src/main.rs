@@ -10,6 +10,7 @@ use raytracer::light::*;
 use raytracer::material::*;
 use raytracer::world::*;
 use raytracer::camera::*;
+use raytracer::pattern::*;
 
 fn canvas_to_file(filename: &str)
 {
@@ -61,6 +62,7 @@ fn rendered_sphere(filename: &str)
     let mut canvas = Canvas::new(CANVAS_PIXELS, CANVAS_PIXELS);
     let mut m = Material::default();
     m.color = Color::new(1., 0.2, 1.);
+    m.pattern = Some(Pattern::stripe_pattern(GREEN, RED, Some(Matrix::scaling(0.1, 0.1, 0.1))));
     let tr = Matrix::shearing(1., 0., 0.5, 0., 0., 0.) * Matrix::scaling(1., 0.5, 1.);
     let shape = Sphere::new(Some(m), Some(tr));
     let light_position = Tuple::point(-10., 10., -10.);
@@ -79,7 +81,7 @@ fn rendered_sphere(filename: &str)
                     let point = r.position(h.t);
                     let normal = h.object.normal_at(point);
                     let eye = - r.direction;
-                    let color = h.object.material().lighting(&light, point, eye, normal, false);
+                    let color = h.object.material().lighting(&*h.object, &light, point, eye, normal, false);
                     canvas.write_pixel(x, y, color);
                 },
                 _ => ()

@@ -1,7 +1,7 @@
 use super::canvas::Canvas;
 use super::tuple::{Tuple, ORIGO};
 use super::ray::Ray;
-use super::matrix::{Matrix, IDENTITY_MATRIX};
+use super::matrix::Matrix;
 use super::world::World;
 
 
@@ -65,6 +65,7 @@ mod tests {
     use super::*;
     use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, SQRT_2};
     use crate::approx_eq;
+    use crate::matrix::IDENTITY_MATRIX;
     use crate::color::Color;
 
     #[test]

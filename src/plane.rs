@@ -1,6 +1,6 @@
 use super::intersection::{Intersection, Intersections};
 use super::material::Material;
-use super::matrix::{Matrix, IDENTITY_MATRIX};
+use super::matrix::Matrix;
 use super::ray::Ray;
 use super::shape::{inverse_transform_parameter, BoxShape, Shape};
 use super::tuple::{Tuple, VECTOR_Y_UP};
